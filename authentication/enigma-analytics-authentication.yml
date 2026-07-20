@@ -1,0 +1,27 @@
+generated: '2026-07-19'
+method: searched
+source: https://documentation.enigma.com/reference/graphql_api/
+docs: https://documentation.enigma.com/reference/graphql_api/
+summary:
+  types: [apiKey, bearer]
+  api_key_in: [header]
+  api_key_name: x-api-key
+schemes:
+  - name: ApiKeyAuth
+    type: apiKey
+    in: header
+    parameter_name: x-api-key
+    applies_to: Enigma GraphQL API (https://api.enigma.com/graphql)
+    description: >-
+      All GraphQL API requests require an x-api-key request header carrying an Enigma API key
+      issued from the Enigma Console (https://console.enigma.com).
+    sources: [https://documentation.enigma.com/reference/graphql_api/]
+  - name: BearerAuth
+    type: http
+    scheme: bearer
+    applies_to: Enigma MCP server (https://mcp.enigma.com/mcp)
+    description: >-
+      The remote MCP server authenticates with an Authorization bearer token tied to an Enigma API
+      key. The Console "Agent tools" page emits ready-to-paste MCP client configuration with the
+      key pre-filled. Unauthenticated calls return {"error":"invalid_token"}.
+    sources: [https://documentation.enigma.com/guides/ai-mcp]
