@@ -1,0 +1,55 @@
+generated: '2026-07-19'
+method: derived
+source: https://documentation.enigma.com/reference/graphql_api/
+notes: >-
+  Entity-relationship graph derived from the Enigma GraphQL schema (graph-model-1). Relationships
+  are exposed as Relay connections; each edge carries firstObservedDate, lastObservedDate, rank,
+  and datasetIds. Direction below reflects the connection fields documented on each type.
+entities:
+  - name: Brand
+    description: Business entity — names, websites, operating locations, industries, card-transaction data, high-risk activity flags.
+    relationships:
+      - { to: BrandName, kind: has_many, via: names }
+      - { to: Website, kind: has_many, via: websites }
+      - { to: OperatingLocation, kind: has_many, via: operatingLocations }
+      - { to: LegalEntity, kind: has_many, via: legalEntities }
+      - { to: Brand, kind: has_many, via: affiliatedBrands }
+      - { to: Industry, kind: has_many, via: industries }
+      - { to: Activity, kind: has_many, via: activities }
+  - name: LegalEntity
+    description: Registered business entity — names, roles, persons, tax IDs (TINs), bankruptcy records.
+    relationships:
+      - { to: EntityName, kind: has_many, via: names }
+      - { to: Brand, kind: has_many, via: brands }
+      - { to: Person, kind: has_many, via: persons }
+      - { to: OperatingLocation, kind: has_many, via: operatingLocations }
+      - { to: Address, kind: has_many, via: addresses }
+      - { to: Tin, kind: has_many, via: tins }
+      - { to: EntityType, kind: has_many, via: types }
+      - { to: Bankruptcy, kind: has_many, via: bankruptcies }
+  - name: OperatingLocation
+    description: Physical location where a business operates — addresses, phones, operating status, revenue.
+    relationships:
+      - { to: LocationName, kind: has_many, via: names }
+      - { to: Address, kind: has_many, via: addresses }
+      - { to: PhoneNumber, kind: has_many, via: phoneNumbers }
+      - { to: Brand, kind: has_many, via: brands }
+      - { to: LegalEntity, kind: has_many, via: legalEntities }
+      - { to: Website, kind: has_many, via: websites }
+      - { to: OperatingStatus, kind: has_many, via: operatingStatuses }
+  - name: Address
+    description: USPS-standard street address with coordinates and deliverability.
+    relationships:
+      - { to: OperatingLocation, kind: has_many, via: operatingLocations }
+      - { to: Registration, kind: has_many, via: registrations }
+      - { to: LegalEntity, kind: has_many, via: legalEntities }
+      - { to: Deliverability, kind: has_many, via: deliverabilities }
+      - { to: WatchlistEntry, kind: has_many, via: watchlistEntries }
+  - name: Person
+    description: Natural person associated with legal entities.
+    relationships:
+      - { to: LegalEntity, kind: has_many, via: entities }
+  - name: Industry
+    description: Business classification (NAICS, SIC, MCC, and proprietary descriptions).
+    relationships:
+      - { to: Brand, kind: has_many, via: brands }

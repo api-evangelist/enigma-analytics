@@ -1,0 +1,20 @@
+generated: '2026-07-19'
+method: generated
+source: mcp/enigma-analytics-mcp.yml
+notes: >-
+  Skills are grounded in Enigma's real, published MCP tools (searched from
+  documentation.enigma.com/guides/ai-mcp). Enigma ships no OpenAPI (GraphQL-only), so operations[]
+  reference verified MCP tool names rather than OpenAPI operationIds.
+skills:
+  - file: enigma-analytics-kyb-verification.md
+    name: Verify a business (KYB)
+    api: mcp/enigma-analytics-mcp.yml
+    operations: [search_business, search_kyb, get_brand_locations, get_brand_legal_entities]
+  - file: enigma-analytics-sanctions-screening.md
+    name: Screen and decision a customer
+    api: mcp/enigma-analytics-mcp.yml
+    operations: [screen_customer, screen_business, screen_entity_search, find_decision, find_decisions, update_decision]
+  - file: enigma-analytics-risk-due-diligence.md
+    name: Run risk due diligence on a business
+    api: mcp/enigma-analytics-mcp.yml
+    operations: [search_business, search_negative_news, search_gov_archive, get_brand_card_analytics]

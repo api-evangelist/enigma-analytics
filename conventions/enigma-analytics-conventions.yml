@@ -1,0 +1,37 @@
+generated: '2026-07-19'
+method: searched
+source: https://documentation.enigma.com/reference/graphql_api/
+authentication:
+  style: api-key-header
+  header: x-api-key
+  see: authentication/enigma-analytics-authentication.yml
+pagination:
+  style: relay-cursor-connections
+  arguments: [first, last, after, before]
+  response_shape:
+    edges: "[{ node, cursor }]"
+    page_info: "pageInfo { hasNextPage, hasPreviousPage, startCursor, endCursor }"
+  defaults:
+    first: "varies by relationship (commonly 3 or 100)"
+  notes: >-
+    Every entity relationship returns a typed Connection (e.g. BrandNameConnection,
+    AddressRegistrationConnection). Edges carry firstObservedDate, lastObservedDate, rank, and
+    datasetIds for provenance and quality ranking.
+error_envelope:
+  style: graphql-errors-array
+  shape: "{ data, errors: [{ message, path, extensions }] }"
+  notes: Standard GraphQL error semantics; no RFC 9457 problem+json.
+idempotency:
+  supported: false
+  notes: >-
+    No idempotency-key contract is documented. The API is read-dominant (queries); mutations exist
+    for list creation/materialization/suggestions but publish no idempotency key.
+versioning:
+  see: lifecycle/enigma-analytics-lifecycle.yml
+  notes: graph-model-1 data model; services versioned independently (KYB v1 / v2).
+rate_limiting:
+  documented: false
+  notes: No explicit rate-limit or GraphQL query-complexity limits published; nested connections
+    carry default page sizes that bound depth.
+data_model:
+  see: data-model/enigma-analytics-data-model.yml

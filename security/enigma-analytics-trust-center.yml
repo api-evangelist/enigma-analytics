@@ -1,0 +1,12 @@
+generated: '2026-07-19'
+method: searched
+probe: true
+source: https://www.enigma.com/legal/security
+url: https://www.enigma.com/legal/security
+certifications:
+- SOC 2
+evidence:
+- source: https://www.enigma.com/legal/security
+  keywords:
+  - soc 2
+  - soc2

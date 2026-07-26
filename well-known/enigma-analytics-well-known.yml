@@ -1,0 +1,27 @@
+generated: '2026-07-19'
+method: searched
+notes: >-
+  Only www.enigma.com/.well-known/security.txt returned a genuine document (text/plain, RFC 9116).
+  The api.enigma.com and documentation.enigma.com /.well-known/* probes returned the SPA shell
+  (text/html, identical byte length) — i.e. soft-404s, not real documents — so they are recorded
+  as not-present.
+hosts:
+- host: https://www.enigma.com
+  documents:
+  - path: /.well-known/security.txt          # RFC 9116
+    status: 200
+    file: enigma-analytics-security.txt
+- host: https://api.enigma.com
+  documents:
+  - path: /.well-known/openid-configuration
+    status: soft-404          # returns SPA shell, not JSON
+  - path: /.well-known/oauth-authorization-server
+    status: soft-404
+  - path: /.well-known/api-catalog
+    status: soft-404
+  - path: /.well-known/ai-plugin.json
+    status: soft-404
+- host: https://documentation.enigma.com
+  documents:
+  - path: /llms.txt
+    status: soft-404          # returns SPA shell, not text/plain

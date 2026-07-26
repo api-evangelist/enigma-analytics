@@ -1,0 +1,32 @@
+generated: '2026-07-19'
+method: searched
+source: https://www.enigma.com/legal/security
+standards:
+  - id: soc2-type2
+    conforms: true
+    evidence: >-
+      "SOC 2 (Type 2) compliant" — Security, availability, and confidentiality trust services
+      criteria, per https://www.enigma.com/legal/security
+  - id: graphql
+    conforms: true
+    evidence: Primary API is GraphQL served at https://api.enigma.com/graphql
+  - id: relay-cursor-connections
+    conforms: true
+    evidence: >-
+      Relay-style connection pagination (edges/node/cursor/pageInfo; first/last/after/before args)
+      per the GraphQL schema
+  - id: oauth2-bearer
+    conforms: true
+    evidence: MCP server authenticates with an Authorization bearer token (invalid_token on missing header)
+  - id: rfc9116-security-txt
+    conforms: true
+    evidence: Valid /.well-known/security.txt published at www.enigma.com
+  - id: rfc9457-problem-details
+    conforms: false
+    evidence: GraphQL surface uses the standard top-level errors[] envelope, not application/problem+json
+  - id: iso-27001
+    conforms: false
+  - id: pci-dss
+    conforms: false
+  - id: hipaa
+    conforms: false

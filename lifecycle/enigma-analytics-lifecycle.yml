@@ -1,0 +1,30 @@
+generated: '2026-07-19'
+method: searched
+source: https://status.enigma.com/
+versioning:
+  scheme: named-datasets-and-service-versions
+  notes: >-
+    The GraphQL API is served over the `graph-model-1` data model. Backing services are versioned
+    independently and surfaced on the status page — e.g. "KYB Service v1" and "KYB Service v2"
+    run side by side. No single global API version string is published.
+  graphql_endpoint: https://api.enigma.com/graphql
+deprecation:
+  policy_url: null
+  sunset_header: unknown
+  notes: No public deprecation policy or RFC 8594 Sunset/Deprecation header support was found.
+sla:
+  url: https://status.enigma.com/
+  uptime_target: null
+  observed_90d:
+    - {component: Console, uptime: '99.98%'}
+    - {component: GraphQL API, uptime: '99.97%'}
+    - {component: Business API, uptime: '99.95%'}
+    - {component: Screen API, uptime: '100.0%'}
+    - {component: KYB Service v1, uptime: '99.95%'}
+    - {component: KYB Service v2, uptime: '99.97%'}
+    - {component: TIN Verification, uptime: '99.55%'}
+    - {component: Watchlist Screening, uptime: '100.0%'}
+    - {component: MCP, uptime: '99.98%'}
+status_page: https://status.enigma.com/
+status_platform: Atlassian Statuspage
+deprecated_operations: []

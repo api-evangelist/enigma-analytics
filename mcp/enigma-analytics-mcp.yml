@@ -1,0 +1,49 @@
+generated: '2026-07-19'
+method: searched
+status: published
+source: https://documentation.enigma.com/guides/ai-mcp
+server:
+  name: enigma
+  transport: http            # streamable HTTP (JSON-RPC); server: uvicorn
+  url: https://mcp.enigma.com/mcp
+  docs: https://documentation.enigma.com/guides/ai-mcp
+  tools_docs: https://documentation.enigma.com/guides/ai-mcp/tools
+  screening_tools_docs: https://documentation.enigma.com/guides/ai-mcp/screening-tools
+auth:
+  # Probing POST https://mcp.enigma.com/mcp returns
+  # {"error":"invalid_token","error_description":"Missing or invalid authorization header"}
+  type: bearer
+  notes: >-
+    Requires an Authorization bearer token tied to an Enigma API key. The Enigma Console "Agent
+    tools" page provides copy-paste MCP configuration with the API key pre-filled for Claude Code,
+    Cursor, VS Code, and Gemini CLI.
+  status_component: MCP (monitored on https://status.enigma.com/)
+tools:
+  - name: search_business
+    description: Look up company information by name, website, phone, or address to retrieve revenue, growth, industry, tech stack, and locations.
+  - name: search_person
+    description: Find individual profiles by name or ID with associated roles, entities, registrations, and business addresses.
+  - name: get_brand_locations
+    description: Retrieve all physical addresses for an Enigma Brand ID with revenue and geographic coordinates.
+  - name: get_brand_card_analytics
+    description: Access up to 60 months of card-transaction history including revenue, growth rates, customer counts, and transaction details.
+  - name: get_brand_legal_entities
+    description: Obtain all legal entities linked to a brand with registration status, formation dates, and filing information.
+  - name: search_negative_news
+    description: Screen for risk indicators by business name and address across legal, financial, labor, and compliance categories.
+  - name: search_gov_archive
+    description: Query business registrations, permits, licenses, health inspections, court filings, and professional records.
+  - name: search_kyb
+    description: Verify business identity through name and address matching against state-of-society and other sources.
+  - name: screen_customer
+    description: Screen individuals against sanctions lists using name, DOB, country, or passport information.
+  - name: screen_business
+    description: Screen organizations against sanctions lists by name, country, address, or BIC code.
+  - name: screen_entity_search
+    description: Retrieve the full sanctions profile for an entity ID.
+  - name: find_decision
+    description: Retrieve a single screening decision by its request ID.
+  - name: find_decisions
+    description: Query multiple screening decisions with date range, status, and assignee filters.
+  - name: update_decision
+    description: Update a screening decision's status, assignee, or notes.
