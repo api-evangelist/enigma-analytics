@@ -1,26 +1,30 @@
 aid: enigma-analytics
 accessModel:
-  pricing: unknown
+  pricing: freemium
   onboarding: self-serve
-  trial: false
-  try_now: false
-  public: false
-  label: Self-serve signup
-  confidence: medium
+  trial: true
+  try_now: true
+  public: true
+  label: Self-serve signup with published list pricing
+  confidence: high
   source:
-  - authentication
-  generated: '2026-07-22'
-  method: derived
+  - https://www.enigma.com/pricing
+  - plans/enigma-analytics-plans-pricing.yml
+  generated: '2026-08-14'
+  method: searched
 image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/icons/enigma-analytics.png
 name: Enigma Analytics
 description: >-
   Enigma Analytics (Enigma Technologies) operates a knowledge graph of every U.S. business —
   100M+ business registrations and 2B+ relationships spanning brands, legal entities, operating
-  locations, addresses, and the people behind them. Enigma exposes this business identity
-  infrastructure through a Relay-style GraphQL API, a hosted Console, and a remote MCP server,
-  powering Know Your Business (KYB) onboarding, sanctions and watchlist screening, negative-news
-  and government-archive checks, TIN verification, card-transaction analytics, and payment
-  underwriting and go-to-market signals for banks, fintechs, and payments platforms.
+  locations, addresses, and the people behind them, enriched with 750M+ anonymized cards and 30B+
+  annual card transactions. Enigma exposes this business identity infrastructure through three
+  developer surfaces — a Relay-style GraphQL API, a KYB REST API, and a sanctions Screen API —
+  plus a hosted Console and an OAuth 2.1 remote MCP server, powering Know Your Business (KYB)
+  onboarding, sanctions and watchlist screening, negative-news and government-archive checks, TIN
+  and SSN verification, card-transaction analytics, and payment underwriting and go-to-market
+  signals for banks, fintechs, and payments platforms. Pricing is published and self-serve, metered
+  in credits at one cent each.
 url: https://raw.githubusercontent.com/api-evangelist/enigma-analytics/refs/heads/main/apis.yml
 x-type: company
 x-source: vc-portfolio
@@ -30,7 +34,7 @@ x-tier: enriched
 x-tier-reason: portfolio-lead
 specificationVersion: '0.20'
 created: '2026-07-17'
-modified: '2026-07-19'
+modified: '2026-08-14'
 tags:
 - Company
 - Business Data
@@ -42,6 +46,8 @@ tags:
 - Fintech
 - Data Enrichment
 - MCP
+- Agent Skills
+- Payments Risk
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
@@ -52,7 +58,10 @@ apis:
   description: >-
     Enigma's primary programmatic surface: a Relay-style GraphQL API over the business knowledge
     graph. Query Brand, LegalEntity, OperatingLocation, Address, Person, and Industry entities via
-    connection-based (cursor) pagination, authenticated with an x-api-key header.
+    connection-based (cursor) pagination, a full filter algebra (EQ/IN/LIKE/AND/OR/HAS and
+    arithmetic operators), math functions, an aggregate query, and async segmentation exports polled
+    through backgroundTask. Authenticated with an x-api-key header and metered in credits per entity
+    returned.
   humanURL: https://documentation.enigma.com/reference/graphql_api/
   baseURL: https://api.enigma.com/graphql
   tags:
@@ -62,11 +71,91 @@ apis:
   properties:
   - type: APIReference
     url: https://documentation.enigma.com/reference/graphql_api/
+  - type: GettingStarted
+    url: https://documentation.enigma.com/guides/graphql/api
+  - type: Documentation
+    url: https://documentation.enigma.com/guides/graphql
+  - type: Sandbox
+    url: https://console.enigma.com/explore/graphql
+  - type: ErrorCatalog
+    url: errors/enigma-analytics-problem-types.yml
+  - type: RateLimits
+    url: rate-limits/enigma-analytics-rate-limits.yml
+  - type: AgentSkill
+    url: skills/enigma-analytics-enigma-graphql-published.md
+- name: Enigma KYB REST API
+  description: >-
+    REST endpoint for Know Your Business verification. POST a business name, address, website, TIN
+    and/or person and receive identity matching and compliance validation. The `identify` package
+    returns basic matching and enrichment; the default `verify` package adds jurisdiction type,
+    registration status/sub-status/detail, person verification and domestic registration
+    verification. Add-on tasks via the attrs query parameter cover TIN (EIN) verification, OFAC
+    watchlist screening and SSN verification. Authenticated with an x-api-key header.
+  humanURL: https://documentation.enigma.com/kyb
+  baseURL: https://api.enigma.com/v2/kyb/
+  tags:
+  - KYB
+  - Identity Verification
+  - Compliance
+  properties:
+  - type: Documentation
+    url: https://documentation.enigma.com/kyb
+  - type: GettingStarted
+    url: https://documentation.enigma.com/docs/kyb-api-quickstart
+  - type: APIReference
+    url: https://documentation.enigma.com/kyb/response
+  - type: RateLimits
+    url: rate-limits/enigma-analytics-rate-limits.yml
+  - type: AgentSkill
+    url: skills/enigma-analytics-enigma-kyb-published.md
+- name: Enigma Screen API
+  description: >-
+    REST endpoint for screening persons and organizations against sanctions, PEP and watchlist
+    databases. Accepts a batch of ENTITY searches carrying person_name and/or org_name descriptions
+    and returns match confidence, potential matches and source list detail, with a decisioning
+    workflow (find/update decision) layered on top. Authenticated with an x-api-key header plus an
+    Account-Name header.
+  humanURL: https://documentation.enigma.com/guides/ai-mcp/screening-tools
+  baseURL: https://api.enigma.com/evaluation/sanctions/screen
+  tags:
+  - Sanctions Screening
+  - Compliance
+  - Identity Verification
+  properties:
+  - type: Documentation
+    url: https://documentation.enigma.com/guides/ai-mcp/screening-tools
+  - type: AgentSkill
+    url: skills/enigma-analytics-enigma-screen-published.md
+  - type: Sandbox
+    url: sandbox/enigma-analytics-sandbox.yml
+- name: Enigma MCP Server
+  description: >-
+    Remote Model Context Protocol server for U.S. business intelligence — entity resolution, KYB
+    verification, sanctions and negative-news screening, card-transaction analytics and
+    public-records search — exposed as 16 documented tools over streamable HTTP. Authorized with the
+    MCP OAuth 2.1 profile (dynamic client registration, PKCE S256) against oauth.enigma.com, or with
+    a bearer token tied to an Enigma API key. Rate limited per tool on rolling 24-hour and 30-day
+    windows. Declared in a server card at www.enigma.com/.well-known/mcp/server-card.json.
+  humanURL: https://documentation.enigma.com/guides/ai-mcp
+  baseURL: https://mcp.enigma.com/mcp
+  tags:
+  - MCP
+  - Business Data
+  - Sanctions Screening
+  properties:
+  - type: MCPServer
+    url: mcp/enigma-analytics-mcp.yml
+  - type: ToolCrosswalk
+    url: mcp/enigma-analytics-tool-crosswalk.yml
+  - type: Documentation
+    url: https://documentation.enigma.com/guides/ai-mcp
+  - type: APIReference
+    url: https://documentation.enigma.com/guides/ai-mcp/tools
+  - type: OAuthScopes
+    url: scopes/enigma-analytics-scopes.yml
+  - type: RateLimits
+    url: rate-limits/enigma-analytics-rate-limits.yml
 common:
-- type: TrustCenter
-  url: security/enigma-analytics-trust-center.yml
-- type: DomainSecurity
-  url: security/enigma-analytics-domain-security.yml
 - type: Website
   url: https://www.enigma.com
 - type: DeveloperPortal
@@ -83,10 +172,14 @@ common:
   url: https://console.enigma.com
 - type: Pricing
   url: https://www.enigma.com/pricing
+- type: Plans
+  url: plans/enigma-analytics-plans-pricing.yml
 - type: Blog
   url: https://www.enigma.com/resources/blog
 - type: Support
   url: https://www.enigma.com/contact-us
+- type: GitHubOrganization
+  url: https://github.com/enigma-io
 - type: StatusPage
   url: https://status.enigma.com/
 - type: TermsOfService
@@ -97,16 +190,24 @@ common:
   url: https://www.enigma.com/legal/security
 - type: Compliance
   url: https://www.enigma.com/legal/security
+- type: TrustCenter
+  url: security/enigma-analytics-trust-center.yml
+- type: DomainSecurity
+  url: security/enigma-analytics-domain-security.yml
+- type: VulnerabilityDisclosure
+  url: security/enigma-analytics-vulnerability-disclosure.yml
 - type: MCPServer
   url: mcp/enigma-analytics-mcp.yml
+- type: ToolCrosswalk
+  url: mcp/enigma-analytics-tool-crosswalk.yml
 - type: Authentication
   url: authentication/enigma-analytics-authentication.yml
+- type: OAuthScopes
+  url: scopes/enigma-analytics-scopes.yml
 - type: WellKnown
   url: well-known/enigma-analytics-well-known.yml
 - type: SecurityTxt
   url: well-known/enigma-analytics-security.txt
-- type: VulnerabilityDisclosure
-  url: security/enigma-analytics-vulnerability-disclosure.yml
 - type: Conformance
   url: conformance/enigma-analytics-conformance.yml
 - type: Lifecycle
@@ -115,12 +216,20 @@ common:
   url: conventions/enigma-analytics-conventions.yml
 - type: DataModel
   url: data-model/enigma-analytics-data-model.yml
+- type: ErrorCatalog
+  url: errors/enigma-analytics-problem-types.yml
+- type: RateLimits
+  url: rate-limits/enigma-analytics-rate-limits.yml
+- type: Sandbox
+  url: sandbox/enigma-analytics-sandbox.yml
+- type: Packages
+  url: packages/enigma-analytics-packages.yml
 - type: LLMsTxt
   url: llms/enigma-analytics-llms.txt
 - type: AgentSkill
   url: skills/_index.yml
 x-enrichment:
-  date: '2026-07-19'
-  status: backfilled
+  date: '2026-08-14'
+  status: enriched
+  artifacts_added: 14
   pass: local-v1
-  note: backfilled from .gitignore signal + verified work evidence
