@@ -1,27 +1,86 @@
-generated: '2026-07-19'
+generated: '2026-08-14'
 method: searched
-source: https://documentation.enigma.com/reference/graphql_api/
+source: https://www.enigma.com/llms.txt
 docs: https://documentation.enigma.com/reference/graphql_api/
+sources:
+- https://www.enigma.com/llms.txt
+- https://documentation.enigma.com/reference/graphql_api/
+- https://documentation.enigma.com/guides/ai-mcp
+- https://mcp.enigma.com/.well-known/oauth-authorization-server
+- https://github.com/enigma-io/enigma-claude-plugins
 summary:
-  types: [apiKey, bearer]
+  types: [apiKey, oauth2, http]
   api_key_in: [header]
   api_key_name: x-api-key
+  oauth2_for: MCP server only
 schemes:
-  - name: ApiKeyAuth
-    type: apiKey
-    in: header
-    parameter_name: x-api-key
-    applies_to: Enigma GraphQL API (https://api.enigma.com/graphql)
-    description: >-
-      All GraphQL API requests require an x-api-key request header carrying an Enigma API key
-      issued from the Enigma Console (https://console.enigma.com).
-    sources: [https://documentation.enigma.com/reference/graphql_api/]
-  - name: BearerAuth
-    type: http
-    scheme: bearer
-    applies_to: Enigma MCP server (https://mcp.enigma.com/mcp)
-    description: >-
-      The remote MCP server authenticates with an Authorization bearer token tied to an Enigma API
-      key. The Console "Agent tools" page emits ready-to-paste MCP client configuration with the
-      key pre-filled. Unauthenticated calls return {"error":"invalid_token"}.
-    sources: [https://documentation.enigma.com/guides/ai-mcp]
+- name: ApiKeyAuth
+  type: apiKey
+  in: header
+  parameter_name: x-api-key
+  applies_to:
+  - Enigma GraphQL API (https://api.enigma.com/graphql)
+  - Enigma KYB REST API (https://api.enigma.com/v2/kyb/)
+  - Enigma Screen API (https://api.enigma.com/evaluation/sanctions/screen)
+  description: >-
+    All three developer surfaces require an x-api-key request header carrying an Enigma API key
+    issued from the Enigma Console (https://console.enigma.com). One key, production data, no
+    test-mode variant. Enigma's own Agent Skills note the key contains characters that break shell
+    argument parsing and instruct callers to avoid curl.
+  failure:
+    http_status: 401
+    body: '{"error_message":"Missing or invalid API key","error_code":"UNAUTHORIZED","retryable":false}'
+    observed: '2026-08-14'
+  sources:
+  - https://documentation.enigma.com/reference/graphql_api/
+  - https://www.enigma.com/llms.txt
+- name: AccountNameHeader
+  type: apiKey
+  in: header
+  parameter_name: Account-Name
+  applies_to: Enigma Screen API (https://api.enigma.com/evaluation/sanctions/screen)
+  description: >-
+    The Screen API takes an additional Account-Name header alongside x-api-key. Enigma's published
+    enigma-screen Agent Skill uses the value `public_evaluation`.
+  sources:
+  - https://github.com/enigma-io/enigma-claude-plugins
+- name: EnigmaMCPOAuth
+  type: oauth2
+  applies_to: Enigma MCP server (https://mcp.enigma.com/mcp)
+  description: >-
+    The remote MCP server implements the MCP OAuth 2.1 authorization profile against
+    https://oauth.enigma.com — authorization_code + refresh_token grants, PKCE S256 required, open
+    dynamic client registration (RFC 7591), token revocation and introspection endpoints, and JWKS
+    served from Amazon Cognito (us-east-1). Authorization-server metadata (RFC 8414) and
+    protected-resource metadata (RFC 9728) are both published and were fetched anonymously.
+  flows:
+  - flow: authorizationCode
+    authorizationUrl: https://oauth.enigma.com/authorize
+    tokenUrl: https://oauth.enigma.com/token
+    registrationUrl: https://oauth.enigma.com/register
+    scopes: [openid]
+  failure:
+    http_status: 401
+    body: '{"error":"invalid_token","error_description":"Missing or invalid authorization header"}'
+    observed: '2026-08-14'
+  see: ../scopes/enigma-analytics-scopes.yml
+  sources:
+  - https://mcp.enigma.com/.well-known/oauth-authorization-server
+  - https://documentation.enigma.com/guides/ai-mcp
+- name: BearerAuth
+  type: http
+  scheme: bearer
+  applies_to: Enigma MCP server (https://mcp.enigma.com/mcp)
+  description: >-
+    Alternative to the OAuth flow: the Console "Agent tools" page emits ready-to-paste MCP client
+    configuration with an Authorization bearer token tied to an Enigma API key pre-filled, for Claude
+    Code, Cursor, VS Code and Gemini CLI.
+  sources:
+  - https://documentation.enigma.com/guides/ai-mcp
+sso:
+  console: https://documentation.enigma.com/console/sso-configuration
+  note: The Console supports customer SSO configuration; this governs human Console access, not API calls.
+gaps:
+- No OpenID Connect discovery document is served on any host, though `openid` is the only advertised OAuth scope.
+- No per-scope authorization on the MCP surface — an authorized client gets the whole tool set.
+- No key rotation, expiry or IP-allowlist policy is published for x-api-key.

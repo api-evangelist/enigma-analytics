@@ -1,30 +1,68 @@
-generated: '2026-07-19'
+generated: '2026-08-14'
 method: searched
 source: https://status.enigma.com/
+sources:
+- https://status.enigma.com/
+- https://www.enigma.com/llms.txt
+- https://documentation.enigma.com/
 versioning:
-  scheme: named-datasets-and-service-versions
+  scheme: mixed
   notes: >-
-    The GraphQL API is served over the `graph-model-1` data model. Backing services are versioned
-    independently and surfaced on the status page — e.g. "KYB Service v1" and "KYB Service v2"
-    run side by side. No single global API version string is published.
-  graphql_endpoint: https://api.enigma.com/graphql
+    Three different versioning conventions run side by side. The GraphQL API is served over the
+    `graph-model-1` data model with no version string in the URL. The KYB REST API is path-versioned:
+    the current endpoint is https://api.enigma.com/v2/kyb/ and a complete /v1/ documentation tree is
+    still published at documentation.enigma.com/v1/. Backing services are versioned independently and
+    surfaced on the status page ("KYB Service v1" and "KYB Service v2" run concurrently). No single
+    global API version string exists.
+  surfaces:
+  - api: Enigma GraphQL API
+    endpoint: https://api.enigma.com/graphql
+    version: graph-model-1
+    style: data-model-named
+  - api: Enigma KYB REST API
+    endpoint: https://api.enigma.com/v2/kyb/
+    version: v2
+    style: uri-path
+    predecessor: v1 (docs still published at https://documentation.enigma.com/v1/)
+  - api: Enigma Screen API
+    endpoint: https://api.enigma.com/evaluation/sanctions/screen
+    version: unversioned
+    style: none
+  - api: Enigma MCP server
+    endpoint: https://mcp.enigma.com/mcp
+    version: '1.0.0'
+    style: server-card
+    source: https://www.enigma.com/.well-known/mcp/server-card.json
 deprecation:
   policy_url: null
-  sunset_header: unknown
-  notes: No public deprecation policy or RFC 8594 Sunset/Deprecation header support was found.
+  sunset_header: false
+  notes: >-
+    No public deprecation policy and no RFC 8594 Sunset/Deprecation header support was found. KYB v1
+    and v2 both remain live with no published end-of-life date for v1, so a caller on v1 has no
+    signal of when it goes away.
+changelog:
+  published: false
+  notes: >-
+    No dated changelog or release-notes page exists on www.enigma.com or documentation.enigma.com
+    (the 510-URL docs sitemap was searched on 2026-08-14; nothing matching changelog/release/
+    what's-new). Product news appears as undated blog posts at https://www.enigma.com/resources/blog.
+    This is the single largest operational-transparency gap in the profile: with no changelog and no
+    deprecation policy, a KYB v1 caller has no published mechanism to learn about a breaking change.
 sla:
   url: https://status.enigma.com/
   uptime_target: null
+  contract_sla: Enterprise plan only ("contract SLA" per https://www.enigma.com/pricing)
   observed_90d:
-    - {component: Console, uptime: '99.98%'}
-    - {component: GraphQL API, uptime: '99.97%'}
-    - {component: Business API, uptime: '99.95%'}
-    - {component: Screen API, uptime: '100.0%'}
-    - {component: KYB Service v1, uptime: '99.95%'}
-    - {component: KYB Service v2, uptime: '99.97%'}
-    - {component: TIN Verification, uptime: '99.55%'}
-    - {component: Watchlist Screening, uptime: '100.0%'}
-    - {component: MCP, uptime: '99.98%'}
+  - {component: Console, uptime: '99.98%'}
+  - {component: GraphQL API, uptime: '99.97%'}
+  - {component: Business API, uptime: '99.95%'}
+  - {component: Screen API, uptime: '100.0%'}
+  - {component: KYB Service v1, uptime: '99.95%'}
+  - {component: KYB Service v2, uptime: '99.97%'}
+  - {component: TIN Verification, uptime: '99.55%'}
+  - {component: Watchlist Screening, uptime: '100.0%'}
+  - {component: MCP, uptime: '99.98%'}
+  note: 90-day figures read from the status page in round 1 (2026-07-19); not re-read in round 2.
 status_page: https://status.enigma.com/
 status_platform: Atlassian Statuspage
 deprecated_operations: []

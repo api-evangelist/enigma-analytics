@@ -1,0 +1,76 @@
+generated: '2026-08-14'
+method: searched
+source: https://github.com/enigma-io
+notes: >-
+  Enigma publishes NO first-party language SDK for the GraphQL API, the KYB REST API or the Screen
+  API. Its own skills tell callers to hit the endpoints with plain `urllib` from Python
+  ("NEVER use curl ... always use Python urllib"), which is a direct statement that no client library
+  is expected. npm `enigma`, `enigma-api`, `enigma-sdk` and PyPI `enigma` all resolve to unrelated
+  third-party packages and are NOT recorded here. What Enigma does ship is agent-side tooling: an npm
+  stdio proxy for its remote MCP server, and a Claude Code plugin marketplace carrying three
+  first-party Agent Skills.
+packages:
+- language: javascript
+  registry: npm
+  name: '@enigma-com/enigma-mcp-remote'
+  url: https://www.npmjs.com/package/@enigma-com/enigma-mcp-remote
+  install: npx -y @enigma-com/enigma-mcp-remote https://mcp.enigma.com/mcp
+  official: true
+  version: 0.1.20
+  published: '2025-08-13'
+  source_code: https://github.com/enigma-io/enigma-mcp-remote
+  role: mcp-stdio-proxy
+  note: >-
+    Not an API client library — a stdio-to-remote proxy (a fork of the community `mcp-remote`,
+    credited "prefork: Glen Maddern" in package.json) that lets stdio-only MCP clients reach
+    https://mcp.enigma.com/mcp with OAuth. Last published 2025-08-13, one year before this check, and
+    its own README calls it "a working proof-of-concept ... experimental"; the remote endpoint itself
+    is the current path.
+- language: markdown
+  registry: github
+  name: enigma-api (Claude Code plugin)
+  url: https://github.com/enigma-io/enigma-claude-plugins
+  install: /plugin marketplace add https://github.com/enigma-io/enigma-claude-plugins.git && /plugin install enigma-api@enigma-plugins
+  official: true
+  version: 1.3.0
+  published: '2026-06-09'
+  role: agent-skills
+  note: >-
+    Claude Code marketplace (`enigma-plugins`) owned by engineering@enigma.com, carrying the
+    `enigma-api` plugin v1.3.0 with three Agent Skills — enigma-graphql, enigma-kyb, enigma-screen.
+    No package registry backs this distribution, so `version` is read from
+    .claude-plugin/marketplace.json and `published` from the repository's last push date rather than
+    from registry metadata. The repo states it is a generated public mirror of an internal
+    source-of-truth marketplace.
+- language: python
+  registry: github
+  name: enigma-mcp-examples
+  url: https://github.com/enigma-io/enigma-mcp-examples
+  install: null
+  official: true
+  version: null
+  published: '2025-08-13'
+  role: examples
+  note: >-
+    Example integration only (OpenAI Agents SDK single-agent script against the Enigma MCP server) —
+    not a distributable package, so there is no version to record. Checked; nothing published to any
+    registry.
+registries_checked:
+- registry: npm
+  result: one first-party package (@enigma-com scope); `enigma`, `enigma-api`, `enigma-sdk` are third-party and unrelated
+- registry: pypi
+  result: no first-party package; `enigma` is an unrelated third-party project
+- registry: rubygems
+  result: none
+- registry: crates.io
+  result: none
+- registry: packagist
+  result: none
+- registry: maven-central
+  result: none
+- registry: nuget
+  result: none
+- registry: pkg.go.dev
+  result: none
+sdk_count: 0
+official_sdk_languages: []

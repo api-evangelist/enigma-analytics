@@ -1,37 +1,125 @@
-generated: '2026-07-19'
+generated: '2026-08-14'
 method: searched
-source: https://documentation.enigma.com/reference/graphql_api/
+source: https://www.enigma.com/llms.txt
+sources:
+- https://www.enigma.com/llms.txt
+- https://documentation.enigma.com/reference/graphql_api/
+- https://documentation.enigma.com/guides/graphql/response-status-codes
+- https://documentation.enigma.com/resources/rate-limits
+- https://documentation.enigma.com/resources/credit-utilization
+notes: >-
+  Round 2 upgrade. Enigma runs three surfaces with DIFFERENT conventions — a GraphQL API, a KYB REST
+  API and a Screen REST API — plus an OAuth-authenticated MCP server. The cross-cutting rules below
+  are recorded per surface where they diverge, because an agent that assumes the GraphQL conventions
+  apply to /v2/kyb/ will get them wrong.
+surfaces:
+- name: Enigma GraphQL API
+  endpoint: POST https://api.enigma.com/graphql
+- name: Enigma KYB REST API
+  endpoint: POST https://api.enigma.com/v2/kyb/
+- name: Enigma Screen API
+  endpoint: POST https://api.enigma.com/evaluation/sanctions/screen
+- name: Enigma MCP server
+  endpoint: https://mcp.enigma.com/mcp
 authentication:
   style: api-key-header
   header: x-api-key
-  see: authentication/enigma-analytics-authentication.yml
+  applies_to: [GraphQL API, KYB REST API, Screen API]
+  additional_headers:
+  - api: Screen API
+    header: Account-Name
+    note: 'Enigma''s published skill uses `Account-Name: public_evaluation`'
+  mcp:
+    style: oauth2
+    profile: OAuth 2.1 / MCP authorization with dynamic client registration and PKCE S256
+    see: ../scopes/enigma-analytics-scopes.yml
+  see: ../authentication/enigma-analytics-authentication.yml
 pagination:
-  style: relay-cursor-connections
-  arguments: [first, last, after, before]
-  response_shape:
-    edges: "[{ node, cursor }]"
-    page_info: "pageInfo { hasNextPage, hasPreviousPage, startCursor, endCursor }"
-  defaults:
-    first: "varies by relationship (commonly 3 or 100)"
-  notes: >-
-    Every entity relationship returns a typed Connection (e.g. BrandNameConnection,
-    AddressRegistrationConnection). Edges carry firstObservedDate, lastObservedDate, rank, and
-    datasetIds for provenance and quality ranking.
+  graphql:
+    style: relay-cursor-connections
+    arguments: [first, last, after, before]
+    response_shape:
+      edges: '[{ node, cursor }]'
+      page_info: 'pageInfo { hasNextPage, hasPreviousPage, startCursor, endCursor }'
+    constraints:
+    - Cannot mix `first` and `last` in the same query.
+    - '`search` itself returns a plain union list, NOT a connection — there is no edges/node on `search`.'
+    - 'Alternative offset paging via conditions.pageToken (a numeric offset passed as a string) with conditions.limit.'
+    notes: >-
+      Every entity relationship returns a typed Connection (BrandNameConnection,
+      OperatingLocationAddressConnection, ...). Edges carry firstObservedDate, lastObservedDate, rank
+      and datasetIds for provenance and quality ranking; rank 0 means primary/most recent.
+  rest:
+    kyb: 'top_n query parameter caps returned matches (default 1); when top_n > 1 the add-on tasks are omitted from the response'
+    screen: not published
+filtering:
+  graphql:
+    argument: conditions.filter (FilterExpression)
+    operators:
+      comparison: [EQ, NE, GT, GTE, LT, LTE]
+      set: [IN, NOT_IN]
+      string: [LIKE, ILIKE]
+      logical: [AND, OR, NOT]
+      existence: [HAS]
+      arithmetic: [ADD, SUB, MUL, DIV]
+    field_paths: dot notation, e.g. addresses.city, operatingStatuses.operatingStatus, cardTransactions.period
+    ordering: 'conditions.orderBy accepts ["field ASC", "field DESC"]'
+aggregation:
+  graphql:
+    math_functions: [count, sum, min, max, avg, collect, minDateTime, maxDateTime]
+    aggregate_query: 'aggregate(searchInput) — OPERATING_LOCATION only; countable fields brand, operatingLocation, legalEntity'
+async:
+  style: background-task-polling
+  trigger: 'a `search` carrying an `output` block (filename + CSV|PARQUET + optional s3Path) runs as a segmentation export'
+  poll: 'backgroundTask(id: "UUID") { status, result }'
+  statuses: [PROCESSING, SUCCESS, FAILED, CANCELLED]
+  http_status: 202 Accepted
+  large_responses: >-
+    Responses over 6 MB are 302-redirected to a pre-signed AWS S3 URL via the Location header — a
+    client that does not follow redirects loses the result silently.
 error_envelope:
-  style: graphql-errors-array
-  shape: "{ data, errors: [{ message, path, extensions }] }"
-  notes: Standard GraphQL error semantics; no RFC 9457 problem+json.
+  graphql_level: '{ data, errors: [{ message, path, extensions }] }'
+  gateway_level: '{ error_message, error_code, retryable }'
+  mcp_level: '{ error, error_description, request_id }'
+  rfc9457: false
+  note: >-
+    The gateway envelope carries a machine-readable `retryable` boolean, observed live but not
+    documented. See errors/enigma-analytics-problem-types.yml.
+  see: ../errors/enigma-analytics-problem-types.yml
 idempotency:
   supported: false
+  header: null
   notes: >-
-    No idempotency-key contract is documented. The API is read-dominant (queries); mutations exist
-    for list creation/materialization/suggestions but publish no idempotency key.
-versioning:
-  see: lifecycle/enigma-analytics-lifecycle.yml
-  notes: graph-model-1 data model; services versioned independently (KYB v1 / v2).
+    No idempotency-key contract is published on any surface. The surface is read-dominant, but it is
+    not read-only: `update_decision` mutates a screening decision, and GraphQL list
+    creation/materialization mutations exist. Neither publishes an idempotency key, so a retried
+    write after a timeout is not safe by contract.
 rate_limiting:
-  documented: false
-  notes: No explicit rate-limit or GraphQL query-complexity limits published; nested connections
-    carry default page sizes that bound depth.
+  documented: true
+  scope: per-api-key (GraphQL), per-account (KYB), per-tool (MCP)
+  status_on_exhaustion: 429
+  headers: [Retry-After]
+  ratelimit_headers_published: false
+  see: ../rate-limits/enigma-analytics-rate-limits.yml
+metering:
+  unit: credit
+  price_usd: 0.01
+  basis: per entity returned, at the tier of the most expensive attribute in the response
+  tiers: [free, core, plus, premium]
+  costs: 'core = 1 credit/entity, plus = 3, premium = 5; nested entities compound'
+  exhaustion: 402 Payment Required
+  note: >-
+    Cost is a function of the SHAPE of the response, not the number of calls — the single most
+    important convention for an agent to internalise here, because a query that fans out through
+    nested connections can cost tens of credits.
+  see: ../plans/enigma-analytics-plans-pricing.yml
+versioning:
+  see: ../lifecycle/enigma-analytics-lifecycle.yml
+  notes: >-
+    graph-model-1 data model for GraphQL; KYB REST is path-versioned at /v2/ (with a /v1/ docs tree
+    still published); backing services (KYB v1/v2) versioned independently on the status page.
+request_tracing:
+  header: null
+  note: 'MCP error responses carry a `request_id`; no request-id header is documented for the REST or GraphQL surfaces.'
 data_model:
-  see: data-model/enigma-analytics-data-model.yml
+  see: ../data-model/enigma-analytics-data-model.yml

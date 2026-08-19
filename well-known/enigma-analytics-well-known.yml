@@ -1,27 +1,119 @@
-generated: '2026-07-19'
+generated: '2026-08-14'
 method: searched
 notes: >-
-  Only www.enigma.com/.well-known/security.txt returned a genuine document (text/plain, RFC 9116).
-  The api.enigma.com and documentation.enigma.com /.well-known/* probes returned the SPA shell
-  (text/html, identical byte length) — i.e. soft-404s, not real documents — so they are recorded
-  as not-present.
+  Round 2 (2026-08-14) found three REAL machine-readable documents the round-1 probe missed, because
+  round 1 only probed www/api/documentation and not the MCP or OAuth hosts:
+  (1) https://www.enigma.com/llms.txt — 19,025 bytes of text/plain, provider-authored, describing the
+  GraphQL API, the KYB REST API, the MCP server and the entity model;
+  (2) https://www.enigma.com/.well-known/mcp/server-card.json — an MCP server card against the
+  2025-10-17 server schema, naming the remote endpoint;
+  (3) https://mcp.enigma.com/.well-known/oauth-authorization-server and
+  /.well-known/oauth-protected-resource (RFC 8414 + RFC 9728), plus the same authorization-server
+  document served from https://oauth.enigma.com.
+  As in round 1, documentation.enigma.com (Docusaurus) and console.enigma.com (SPA) answer 200 with an
+  identical HTML shell for EVERY /.well-known/* path — those are soft-404s, not documents, and are
+  recorded as misses. api.enigma.com 302s every /.well-known/* request.
+  www.enigma.com/robots.txt additionally carries a Content-Signal declaration
+  (`ai-train=yes, search=yes, ai-input=yes`) — a published agent-consent signal, saved verbatim.
 hosts:
 - host: https://www.enigma.com
   documents:
   - path: /.well-known/security.txt          # RFC 9116
     status: 200
+    content_type: text/plain
     file: enigma-analytics-security.txt
+  - path: /.well-known/mcp/server-card.json  # MCP server card, schema 2025-10-17
+    status: 200
+    content_type: application/json
+    file: enigma-analytics-mcp-server-card.json
+  - path: /llms.txt
+    status: 200
+    content_type: text/plain
+    file: ../llms/enigma-analytics-llms.txt
+  - path: /robots.txt                        # carries Content-Signal
+    status: 200
+    content_type: text/plain
+    file: enigma-analytics-robots.txt
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+  - path: /.well-known/api-catalog
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+- host: https://mcp.enigma.com
+  documents:
+  - path: /.well-known/oauth-authorization-server    # RFC 8414
+    status: 200
+    content_type: application/json
+    file: enigma-analytics-oauth-authorization-server.json
+  - path: /.well-known/oauth-protected-resource      # RFC 9728
+    status: 200
+    content_type: application/json
+    file: enigma-analytics-oauth-protected-resource.json
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+- host: https://oauth.enigma.com
+  documents:
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    content_type: application/json
+    note: byte-identical to the document served from mcp.enigma.com; not saved twice
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
 - host: https://api.enigma.com
   documents:
   - path: /.well-known/openid-configuration
-    status: soft-404          # returns SPA shell, not JSON
+    status: 302
+    note: every /.well-known/* path 302s; no document served
   - path: /.well-known/oauth-authorization-server
-    status: soft-404
+    status: 302
+  - path: /.well-known/api-catalog
+    status: 302
+  - path: /.well-known/ai-plugin.json
+    status: 302
+  - path: /.well-known/agent-card.json
+    status: 302
+  - path: /.well-known/agent.json
+    status: 302
+- host: https://documentation.enigma.com
+  documents:
+  - path: /.well-known/openid-configuration
+    status: soft-404          # HTTP 200, 21,489-byte Docusaurus HTML shell — identical for every path
   - path: /.well-known/api-catalog
     status: soft-404
   - path: /.well-known/ai-plugin.json
     status: soft-404
-- host: https://documentation.enigma.com
-  documents:
+  - path: /.well-known/agent-card.json
+    status: soft-404
+  - path: /.well-known/agent.json
+    status: soft-404
   - path: /llms.txt
-    status: soft-404          # returns SPA shell, not text/plain
+    status: soft-404
+- host: https://console.enigma.com
+  documents:
+  - path: /.well-known/openid-configuration
+    status: soft-404          # HTTP 200, ~52KB React SPA shell — identical for every path
+  - path: /.well-known/agent-card.json
+    status: soft-404
+  - path: /.well-known/agent.json
+    status: soft-404
+  - path: /llms.txt
+    status: soft-404
+x-evidence:
+  checked: '2026-08-14'
+  real_documents: 6
+  soft_404_hosts: [documentation.enigma.com, console.enigma.com]

@@ -1,0 +1,103 @@
+generated: '2026-08-14'
+method: searched
+source: https://www.enigma.com/pricing
+docs:
+- https://www.enigma.com/pricing
+- https://documentation.enigma.com/resources/credit-utilization
+- https://documentation.enigma.com/resources/rate-limits
+- https://documentation.enigma.com/console/billing
+currency: USD
+billing_period: monthly
+plan_count: 4
+unit_of_consumption:
+  name: credit
+  price: 0.01
+  currency: USD
+  note: >-
+    Enigma publishes "1 credit = 1c". Credits are consumed per ENTITY returned, at the tier of the
+    most expensive attribute in the response — not per query. Attribute tiers are free, core, plus and
+    premium; a core attribute costs 1 credit per entity, a plus attribute 3, a premium attribute 5.
+    Nested entities compound: 1 Brand with 10 OperatingLocations carrying premium attributes is
+    1 + (5 x 10) = 51 credits. Prepaid bundles of $100-$1,000 earn up to 25% bonus credits, valid for
+    one year.
+plans:
+- name: Free
+  price: 0
+  currency: USD
+  period: month
+  included_credits: 0
+  includes:
+  - Console access
+  - Viewing, search and live summaries
+  - standard rate limits
+  api_access: false
+  mcp_access: false
+  overage: null
+- name: Pro
+  price: 20
+  currency: USD
+  period: month
+  included_credits: 2100
+  included_value_usd: 21
+  includes:
+  - Segment building
+  - File enrichment
+  - API access
+  api_access: true
+  mcp_access: true
+  overage: Usage continues at published retail rates once the monthly credit allowance is spent
+  limits:
+    graphql_rps: 50
+    graphql_burst: 100
+    graphql_requests_per_day: 500000
+- name: Max
+  price: 200
+  currency: USD
+  period: month
+  included_credits: 25000
+  included_value_usd: 250
+  includes:
+  - Everything in Pro
+  - MCP access
+  - AI integration access
+  api_access: true
+  mcp_access: true
+  overage: Usage continues at published retail rates once the monthly credit allowance is spent
+  limits:
+    graphql_rps: 50
+    graphql_burst: 100
+    graphql_requests_per_day: 500000
+- name: Enterprise
+  price: null
+  price_model: contact-sales
+  currency: USD
+  period: month
+  included_credits: null
+  includes:
+  - Custom allowance at negotiated rates
+  - Rate-card discounts
+  - Custom attributes and targeting
+  - Custom file delivery
+  - Contract SLA
+  - Dedicated support
+  api_access: true
+  mcp_access: true
+  overage: custom contract terms
+  limits:
+    graphql_rps: 100
+    graphql_burst: 200
+    graphql_requests_per_day: unlimited
+trial:
+  name: Trial
+  note: >-
+    A "Trial" tier is not listed on the pricing page but IS listed in the published GraphQL
+    rate-limit table (10 RPS / 20 burst / 100,000 requests per day), so it exists as a rate-limit
+    class. Recorded here for completeness rather than as a purchasable plan.
+  limits:
+    graphql_rps: 10
+    graphql_burst: 20
+    graphql_requests_per_day: 100000
+notes: >-
+  Enigma is unusual for a KYB/business-data provider in publishing real self-serve list prices rather
+  than a contact-sales wall: Free, $20/mo Pro and $200/mo Max are all buyable without a sales
+  conversation, with Enterprise as the negotiated tier. MCP access is gated to Pro and above.

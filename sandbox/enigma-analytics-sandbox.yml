@@ -1,0 +1,53 @@
+generated: '2026-08-14'
+method: searched
+source: https://console.enigma.com/explore/graphql
+sources:
+- https://console.enigma.com/explore/graphql
+- https://www.enigma.com/pricing
+- https://github.com/enigma-io/enigma-claude-plugins
+notes: >-
+  Enigma publishes no test-mode credentials, no fixture identifiers and no separate sandbox host.
+  What it offers instead is a free Console tier with a hosted GraphQL explorer, and — for sanctions
+  screening only — a named public evaluation account. There are no test/live key prefixes: one
+  x-api-key from the Console works against production data, and consumption is metered in credits,
+  so every exploratory call is a billable production call once past the Free tier.
+test_mode:
+  separate_host: false
+  key_prefixes: null
+  test_vs_live: false
+  note: >-
+    No test/live key distinction is published. This is the sharp edge for agents: there is no way to
+    dry-run a query without spending credits against real business data.
+console:
+  url: https://console.enigma.com
+  graphql_explorer: https://console.enigma.com/explore/graphql
+  agent_tools: https://console.enigma.com/agent-tools
+  status: 200
+  note: >-
+    Enigma's own enigma-graphql Agent Skill names the explorer as the playground for composing
+    queries. The Agent tools page emits copy-paste MCP configuration with the API key pre-filled.
+free_tier:
+  plan: Free
+  price: 0
+  includes: Console access, viewing, search and live summaries, standard rate limits
+  api_access: false
+  note: >-
+    The Free plan gives Console access but not API access, so it is a UI evaluation surface rather
+    than a developer sandbox. See plans/enigma-analytics-plans-pricing.yml.
+evaluation_accounts:
+- api: Screen API
+  endpoint: POST https://api.enigma.com/evaluation/sanctions/screen
+  header: 'Account-Name: public_evaluation'
+  source: https://github.com/enigma-io/enigma-claude-plugins (plugins/enigma-api/skills/enigma-screen/SKILL.md)
+  note: >-
+    Enigma's own published Agent Skill instructs callers to send `Account-Name: public_evaluation`
+    alongside the API key against an endpoint whose path is literally `/evaluation/`. This is the
+    closest thing to a sandbox Enigma documents — a named evaluation account for sanctions screening.
+    Saved verbatim value; recorded because the provider published it, not inferred.
+time_simulation: null
+test_fixtures: null
+triggers: null
+gaps:
+- No test-mode API keys or sandbox host.
+- No published fixture entities (no "always matches" / "always declines" business record).
+- No dry-run or estimate-cost mode, despite per-attribute credit billing where cost is hard to predict before the call.

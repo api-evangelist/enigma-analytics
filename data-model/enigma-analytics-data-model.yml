@@ -1,55 +1,107 @@
-generated: '2026-07-19'
-method: derived
-source: https://documentation.enigma.com/reference/graphql_api/
+generated: '2026-08-14'
+method: searched
+source: https://www.enigma.com/llms.txt
+sources:
+- https://www.enigma.com/llms.txt
+- https://documentation.enigma.com/reference/graphql_api/
+- https://documentation.enigma.com/reference/data/
 notes: >-
-  Entity-relationship graph derived from the Enigma GraphQL schema (graph-model-1). Relationships
-  are exposed as Relay connections; each edge carries firstObservedDate, lastObservedDate, rank,
-  and datasetIds. Direction below reflects the connection fields documented on each type.
+  Round 2 upgrade: previously derived from the GraphQL reference; now taken from Enigma's own
+  provider-published llms.txt, which documents the entity model, the connection fields, the enum
+  values and the traversal rules explicitly. graph-model-1. Relationships are exposed as Relay
+  connections; every edge carries firstObservedDate, lastObservedDate, rank and datasetIds, so
+  provenance and recency are first-class on every fact. rank 0 = primary/most recent.
+core_entity_types: [BRAND, OPERATING_LOCATION, LEGAL_ENTITY]
+union_members: [Brand, OperatingLocation, LegalEntity, Person, Address]
+traversal_rules:
+- Brand, OperatingLocation and LegalEntity are mutually interconnected — a Brand has many OperatingLocations and LegalEntities; an OperatingLocation belongs to Brand(s) and LegalEntity(ies).
+- Card transactions exist on Brand and OperatingLocation but NOT directly on LegalEntity; reach them by traversing through brands or operatingLocations.
+- Brand-level cardTransactions have no rawQuantity; OperatingLocation-level cardTransactions do.
+- projectedQuantity is the statistical estimate of total market volume and is the field to use for business analysis; rawQuantity is the direct observation (Enigma observes roughly one third of U.S. card transactions).
 entities:
-  - name: Brand
-    description: Business entity — names, websites, operating locations, industries, card-transaction data, high-risk activity flags.
-    relationships:
-      - { to: BrandName, kind: has_many, via: names }
-      - { to: Website, kind: has_many, via: websites }
-      - { to: OperatingLocation, kind: has_many, via: operatingLocations }
-      - { to: LegalEntity, kind: has_many, via: legalEntities }
-      - { to: Brand, kind: has_many, via: affiliatedBrands }
-      - { to: Industry, kind: has_many, via: industries }
-      - { to: Activity, kind: has_many, via: activities }
-  - name: LegalEntity
-    description: Registered business entity — names, roles, persons, tax IDs (TINs), bankruptcy records.
-    relationships:
-      - { to: EntityName, kind: has_many, via: names }
-      - { to: Brand, kind: has_many, via: brands }
-      - { to: Person, kind: has_many, via: persons }
-      - { to: OperatingLocation, kind: has_many, via: operatingLocations }
-      - { to: Address, kind: has_many, via: addresses }
-      - { to: Tin, kind: has_many, via: tins }
-      - { to: EntityType, kind: has_many, via: types }
-      - { to: Bankruptcy, kind: has_many, via: bankruptcies }
-  - name: OperatingLocation
-    description: Physical location where a business operates — addresses, phones, operating status, revenue.
-    relationships:
-      - { to: LocationName, kind: has_many, via: names }
-      - { to: Address, kind: has_many, via: addresses }
-      - { to: PhoneNumber, kind: has_many, via: phoneNumbers }
-      - { to: Brand, kind: has_many, via: brands }
-      - { to: LegalEntity, kind: has_many, via: legalEntities }
-      - { to: Website, kind: has_many, via: websites }
-      - { to: OperatingStatus, kind: has_many, via: operatingStatuses }
-  - name: Address
-    description: USPS-standard street address with coordinates and deliverability.
-    relationships:
-      - { to: OperatingLocation, kind: has_many, via: operatingLocations }
-      - { to: Registration, kind: has_many, via: registrations }
-      - { to: LegalEntity, kind: has_many, via: legalEntities }
-      - { to: Deliverability, kind: has_many, via: deliverabilities }
-      - { to: WatchlistEntry, kind: has_many, via: watchlistEntries }
-  - name: Person
-    description: Natural person associated with legal entities.
-    relationships:
-      - { to: LegalEntity, kind: has_many, via: entities }
-  - name: Industry
-    description: Business classification (NAICS, SIC, MCC, and proprietary descriptions).
-    relationships:
-      - { to: Brand, kind: has_many, via: brands }
+- name: Brand
+  description: >-
+    A customer-facing business identity (e.g. "Starbucks"). Scalars id (ID!), internalId, enigmaId.
+  relationships:
+  - {to: BrandName, kind: has_many, via: names, node_fields: [name, rank, firstObservedDate, lastObservedDate]}
+  - {to: Website, kind: has_many, via: websites, node_fields: [url, firstObservedDate, lastObservedDate]}
+  - {to: OperatingLocation, kind: has_many, via: operatingLocations}
+  - {to: LegalEntity, kind: has_many, via: legalEntities}
+  - {to: Brand, kind: has_many, via: affiliatedBrands}
+  - {to: CardTransaction, kind: has_many, via: cardTransactions, node_fields: [quantityType, period, projectedQuantity, periodStartDate, periodEndDate, firstObservedDate, lastObservedDate]}
+  - {to: Industry, kind: has_many, via: industries, node_fields: [industryDesc, industryCode, industryType]}
+  - {to: Activity, kind: has_many, via: activities, note: high-risk activity classifications (~130K brands)}
+  - {to: RevenueQuality, kind: has_many, via: revenueQualities}
+  - {to: LocationDescription, kind: has_many, via: locationDescriptions}
+  - {to: IsMarketable, kind: has_many, via: isMarketables}
+- name: OperatingLocation
+  description: A physical business location with an address. Scalars id (ID!), internalId, enigmaId.
+  relationships:
+  - {to: LocationName, kind: has_many, via: names}
+  - {to: Address, kind: has_many, via: addresses, node_fields: [fullAddress, streetAddress1, streetAddress2, city, state, zip, county, msa, csa, latitude, longitude, h3Index, country]}
+  - {to: PhoneNumber, kind: has_many, via: phoneNumbers}
+  - {to: Brand, kind: has_many, via: brands}
+  - {to: OperatingStatus, kind: has_many, via: operatingStatuses}
+  - {to: CardTransaction, kind: has_many, via: cardTransactions, node_fields: [quantityType, period, rawQuantity, projectedQuantity, periodStartDate, periodEndDate]}
+  - {to: LegalEntity, kind: has_many, via: legalEntities}
+  - {to: Role, kind: has_many, via: roles}
+  - {to: ReviewSummary, kind: has_many, via: reviewSummaries}
+  - {to: Website, kind: has_many, via: websites}
+  - {to: TechnologiesUsed, kind: has_many, via: technologiesUseds, note: POS systems, payment processors}
+  - {to: Rank, kind: has_many, via: ranks, note: competitive revenue ranking}
+  - {to: RevenueQuality, kind: has_many, via: revenueQualities}
+  - {to: IsMarketable, kind: has_many, via: isMarketables}
+  - {to: LocationType, kind: has_many, via: locationTypes}
+- name: LegalEntity
+  description: A U.S. government-recognized business registration. Scalars id (ID!), internalId, enigmaId.
+  relationships:
+  - {to: EntityName, kind: has_many, via: names}
+  - {to: RegisteredEntity, kind: has_many, via: registeredEntities, node_fields: [registeredEntityType, formationDate, name]}
+  - {to: Brand, kind: has_many, via: brands}
+  - {to: Role, kind: has_many, via: roles, note: officers, directors, registered agents}
+  - {to: Person, kind: has_many, via: persons}
+  - {to: Address, kind: has_many, via: addresses, note: registered agent address, principal office}
+  - {to: Tin, kind: has_many, via: tins, note: EIN / SSN / TIN}
+  - {to: OperatingLocation, kind: has_many, via: operatingLocations}
+  - {to: EntityType, kind: has_many, via: types}
+  - {to: Bankruptcy, kind: has_many, via: bankruptcies}
+  - {to: WatchlistEntry, kind: has_many, via: isFlaggedByWatchlistEntries, note: OFAC}
+  - {to: WatchlistEntry, kind: has_many, via: appearsOnWatchlistEntries}
+- name: Person
+  description: Natural person associated with legal entities; searchable by name, DOB, address or TIN.
+  relationships:
+  - {to: LegalEntity, kind: has_many, via: entities}
+- name: Address
+  description: USPS-standard street address with coordinates, H3 index and deliverability.
+  relationships:
+  - {to: OperatingLocation, kind: has_many, via: operatingLocations}
+  - {to: Registration, kind: has_many, via: registrations}
+  - {to: LegalEntity, kind: has_many, via: legalEntities}
+  - {to: Deliverability, kind: has_many, via: deliverabilities}
+  - {to: WatchlistEntry, kind: has_many, via: watchlistEntries}
+- name: Industry
+  description: Business classification (NAICS 2017/2022, SIC, MCC, and Enigma's own descriptions).
+  relationships:
+  - {to: Brand, kind: has_many, via: brands}
+enums:
+  quantityType: [card_revenue_amount, avg_transaction_size, refunds_amount, card_revenue_prior_period_growth, card_customers_average_daily_count]
+  period: ['1m', '3m', '12m']
+  operatingStatus: [Open, Closed, Temporarily Closed, Unknown]
+  industryType: [enigma_industry_description, naics_2017, naics_2022, sic, mcc]
+  registeredEntityType: [Corporation, Limited Liability Company, Limited Partnership]
+  tinType: [TIN, EIN, SSN]
+  entityType: [BRAND, OPERATING_LOCATION, LEGAL_ENTITY]
+  backgroundTaskStatus: [PROCESSING, SUCCESS, FAILED, CANCELLED]
+search_input:
+  patterns:
+  - {name: text-search, fields: [name, address, person, website, phoneNumber, tin]}
+  - {name: lookup, fields: [id], note: entity UUID; takes precedence over all other fields}
+  - {name: prompt-search, fields: [prompt], note: natural language; BRAND only}
+  - {name: segmentation, fields: [output], note: 'async file export — filename, format (CSV|PARQUET), optional s3Path'}
+  minimum_criteria: 'a search should carry id, name or website; otherwise use prompt together with output'
+  other_fields: [matchThreshold, entityType, conditions]
+pii_note: >-
+  The model carries person-level identifiers including dates of birth, SSN/EIN/TIN values and
+  home/registered addresses. This is a regulated-use dataset (KYB/AML/sanctions), not general
+  firmographics — relevant to any agent-access design built on it.
+render: null

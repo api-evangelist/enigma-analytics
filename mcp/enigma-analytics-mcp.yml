@@ -1,49 +1,170 @@
-generated: '2026-07-19'
+generated: '2026-08-14'
 method: searched
 status: published
-source: https://documentation.enigma.com/guides/ai-mcp
+source: https://www.enigma.com/.well-known/mcp/server-card.json
+sources:
+- https://www.enigma.com/.well-known/mcp/server-card.json
+- https://documentation.enigma.com/guides/ai-mcp
+- https://documentation.enigma.com/guides/ai-mcp/tools
+- https://documentation.enigma.com/guides/ai-mcp/screening-tools
+- https://documentation.enigma.com/resources/rate-limits
+- https://www.enigma.com/llms.txt
 server:
-  name: enigma
-  transport: http            # streamable HTTP (JSON-RPC); server: uvicorn
+  name: com.enigma/enigma-mcp
+  title: Enigma MCP
+  version: '1.0.0'
+  transport: streamable-http
   url: https://mcp.enigma.com/mcp
   docs: https://documentation.enigma.com/guides/ai-mcp
   tools_docs: https://documentation.enigma.com/guides/ai-mcp/tools
   screening_tools_docs: https://documentation.enigma.com/guides/ai-mcp/screening-tools
+  server_card: https://www.enigma.com/.well-known/mcp/server-card.json
+  server_card_schema: https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json
+  server_card_file: ../well-known/enigma-analytics-mcp-server-card.json
+  description: >-
+    Remote MCP server for U.S. business intelligence: entity resolution, KYB verification, sanctions
+    and negative-news screening, card-transaction analytics, and public-records search.
+deployment:
+  mode: both
+  endpoint: https://mcp.enigma.com/mcp
+  install: npx -y @enigma-com/enigma-mcp-remote https://mcp.enigma.com/mcp
+  package: https://www.npmjs.com/package/@enigma-com/enigma-mcp-remote
+  auth: oauth
+  verified: probed
+  note: >-
+    `both` because Enigma ships a hosted endpoint AND an npm stdio proxy. They are not equivalent:
+    the endpoint is directly callable by an OAuth-capable MCP client today, while
+    @enigma-com/enigma-mcp-remote (v0.1.20, last published 2025-08-13) exists only to bridge
+    stdio-only clients to that same endpoint. The remote endpoint is the product; the package is a
+    shim, and its own README calls itself an experimental proof-of-concept.
 auth:
-  # Probing POST https://mcp.enigma.com/mcp returns
-  # {"error":"invalid_token","error_description":"Missing or invalid authorization header"}
-  type: bearer
-  notes: >-
-    Requires an Authorization bearer token tied to an Enigma API key. The Enigma Console "Agent
-    tools" page provides copy-paste MCP configuration with the API key pre-filled for Claude Code,
-    Cursor, VS Code, and Gemini CLI.
+  type: oauth2
+  profile: OAuth 2.1 / MCP authorization
+  authorization_server: https://oauth.enigma.com
+  protected_resource: https://mcp.enigma.com/http
+  metadata:
+  - https://mcp.enigma.com/.well-known/oauth-authorization-server
+  - https://mcp.enigma.com/.well-known/oauth-protected-resource
+  dynamic_client_registration: true
+  pkce: S256
+  scopes: [openid]
+  see: ../scopes/enigma-analytics-scopes.yml
+  alternate: >-
+    The Enigma Console "Agent tools" page (https://console.enigma.com/agent-tools) emits copy-paste
+    MCP configuration with an API key pre-filled for Claude Code, Cursor, VS Code and Gemini CLI, so
+    a bearer token tied to an Enigma API key also authenticates. Unauthenticated calls return
+    {"error":"invalid_token"}.
   status_component: MCP (monitored on https://status.enigma.com/)
+access:
+  plans: [Pro, Max, Enterprise]
+  note: MCP access is a paid feature; the Free plan does not include it.
+  see: ../plans/enigma-analytics-plans-pricing.yml
+rate_limits:
+  scope: per-tool
+  windows: [rolling-24h, rolling-30d]
+  see: ../rate-limits/enigma-analytics-rate-limits.yml
+clients_documented:
+- Claude
+- Claude Code
+- ChatGPT
+- Cursor
+- VS Code
+- Gemini CLI
+- Microsoft Copilot
+- OpenAI Playground
 tools:
-  - name: search_business
-    description: Look up company information by name, website, phone, or address to retrieve revenue, growth, industry, tech stack, and locations.
-  - name: search_person
-    description: Find individual profiles by name or ID with associated roles, entities, registrations, and business addresses.
-  - name: get_brand_locations
-    description: Retrieve all physical addresses for an Enigma Brand ID with revenue and geographic coordinates.
-  - name: get_brand_card_analytics
-    description: Access up to 60 months of card-transaction history including revenue, growth rates, customer counts, and transaction details.
-  - name: get_brand_legal_entities
-    description: Obtain all legal entities linked to a brand with registration status, formation dates, and filing information.
-  - name: search_negative_news
-    description: Screen for risk indicators by business name and address across legal, financial, labor, and compliance categories.
-  - name: search_gov_archive
-    description: Query business registrations, permits, licenses, health inspections, court filings, and professional records.
-  - name: search_kyb
-    description: Verify business identity through name and address matching against state-of-society and other sources.
-  - name: screen_customer
-    description: Screen individuals against sanctions lists using name, DOB, country, or passport information.
-  - name: screen_business
-    description: Screen organizations against sanctions lists by name, country, address, or BIC code.
-  - name: screen_entity_search
-    description: Retrieve the full sanctions profile for an entity ID.
-  - name: find_decision
-    description: Retrieve a single screening decision by its request ID.
-  - name: find_decisions
-    description: Query multiple screening decisions with date range, status, and assignee filters.
-  - name: update_decision
-    description: Update a screening decision's status, assignee, or notes.
+- name: search_business
+  category: business-intelligence
+  description: Look up company information by name, website, phone, or address to retrieve revenue, growth,
+    industry, tech stack, and locations.
+  inputs: [business name (required), website, phone, address]
+- name: search_person
+  category: business-intelligence
+  description: Find individual profiles by name or ID with associated roles, entities, registrations,
+    and business addresses.
+  inputs: [person name or person ID (required), location/phone filters, focus]
+- name: get_brand_locations
+  category: business-intelligence
+  description: Retrieve all physical addresses for an Enigma Brand ID with 12-month card revenue per location
+    and geographic coordinates.
+  inputs: [Enigma Brand ID (required)]
+- name: get_brand_card_analytics
+  category: business-intelligence
+  description: Access up to 60 months of card-transaction history including revenue, growth rates, customer
+    counts, and transaction details.
+  inputs: [Enigma Brand ID (required)]
+- name: get_brand_legal_entities
+  category: business-intelligence
+  description: Obtain all legal entities linked to a brand with registration status, formation dates,
+    and filing information.
+  inputs: [Enigma Brand ID (required)]
+- name: search_negative_news
+  category: risk
+  description: Screen for risk indicators across legal, financial, labor, management, environmental, customer,
+    product, and cybersecurity categories.
+  inputs: [business name (required), business address (required)]
+- name: search_gov_archive
+  category: public-records
+  description: Query business registrations, permits, licenses, health inspections, court filings, environmental
+    records, and professional licensing.
+  inputs: [business name (required), prompt context (recommended)]
+- name: search_kyb
+  category: kyb
+  description: Verify business identity through name and address matching, returning matching brands and
+    entities with address and name verification.
+  inputs: [business name (required), business address]
+- name: screen_customer
+  category: screening
+  description: Screen individuals against sanctions lists, returning match confidence, potential matches,
+    and source list information.
+  inputs: [name (required), DOB, country, passport info]
+- name: screen_business
+  category: screening
+  description: Screen organizations against sanctions lists, returning match scores, potential matches, and
+    source details.
+  inputs: [org name (required), country, address, BIC]
+- name: screen_entity_search
+  category: screening
+  description: Retrieve the full sanctions profile for an entity ID.
+  inputs: [entity ID (required), format]
+- name: find_decision
+  category: screening-workflow
+  description: Retrieve a single screening decision by request ID, including status, assignee, and alerts.
+  inputs: [request ID (required)]
+- name: find_decisions
+  category: screening-workflow
+  description: Query multiple screening decisions with date range, status, alert, assignee, and tag filters;
+    paginated.
+  inputs: [date range, status, alert, assignee, tag]
+- name: update_decision
+  category: screening-workflow
+  description: Update a screening decision's status, assignee, or note.
+  inputs: [request ID (required), user ID (required), status, assignee, note]
+- name: generate_brands_segment
+  category: segmentation
+  description: Generate a brand segment export.
+  inputs: unknown
+  source: https://documentation.enigma.com/resources/rate-limits
+  note: >-
+    Named only in the published per-tool rate-limit table (100/day, 1,000/month on Pro and Max), not
+    on the tools reference page. Recorded because Enigma names it as a tool; its input schema is not
+    published.
+- name: generate_locations_segment
+  category: segmentation
+  description: Generate an operating-location segment export.
+  inputs: unknown
+  source: https://documentation.enigma.com/resources/rate-limits
+  note: >-
+    Same as generate_brands_segment — named in the rate-limit table only, input schema not published.
+tool_count: 16
+live_introspection:
+  attempted: '2026-08-14'
+  method: 'POST https://mcp.enigma.com/mcp {"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+  http_status: 401
+  result: gated
+  body: '{"error":"invalid_token","error_description":"Missing or invalid authorization header"}'
+  note: >-
+    tools/list requires an OAuth token, so the real per-tool inputSchema could not be captured. The
+    tool list above is the provider's own published documentation; `inputs` are the parameter names
+    Enigma names in prose, NOT a JSON Schema. Authenticated introspection is required to record the
+    true schemas.

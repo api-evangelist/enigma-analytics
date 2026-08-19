@@ -1,20 +1,75 @@
-generated: '2026-07-19'
-method: generated
-source: mcp/enigma-analytics-mcp.yml
+generated: '2026-08-14'
+method: searched
+source: https://github.com/enigma-io/enigma-claude-plugins
 notes: >-
-  Skills are grounded in Enigma's real, published MCP tools (searched from
-  documentation.enigma.com/guides/ai-mcp). Enigma ships no OpenAPI (GraphQL-only), so operations[]
-  reference verified MCP tool names rather than OpenAPI operationIds.
+  Round 2 upgrade. Enigma PUBLISHES ITS OWN Agent Skills — three SKILL.md files shipped in the
+  `enigma-api` Claude Code plugin (v1.3.0) from the public marketplace repo
+  github.com/enigma-io/enigma-claude-plugins, owned by engineering@enigma.com. Those three are saved
+  verbatim here (`*-published.md`, method: searched) and are the authoritative operating instructions
+  for the GraphQL, KYB and Screen surfaces. The three MCP-flow skills written by the enrichment
+  pipeline in round 1 are retained (method: generated) because they cover MCP tool sequences the
+  published skills do not — the published skills call the HTTP APIs directly, not the MCP server.
+  Enigma ships no OpenAPI, so operations[] reference verified MCP tool names and published endpoints
+  rather than OpenAPI operationIds.
 skills:
-  - file: enigma-analytics-kyb-verification.md
-    name: Verify a business (KYB)
-    api: mcp/enigma-analytics-mcp.yml
-    operations: [search_business, search_kyb, get_brand_locations, get_brand_legal_entities]
-  - file: enigma-analytics-sanctions-screening.md
-    name: Screen and decision a customer
-    api: mcp/enigma-analytics-mcp.yml
-    operations: [screen_customer, screen_business, screen_entity_search, find_decision, find_decisions, update_decision]
-  - file: enigma-analytics-risk-due-diligence.md
-    name: Run risk due diligence on a business
-    api: mcp/enigma-analytics-mcp.yml
-    operations: [search_business, search_negative_news, search_gov_archive, get_brand_card_analytics]
+- file: enigma-analytics-enigma-graphql-published.md
+  name: enigma-graphql
+  method: searched
+  source: https://github.com/enigma-io/enigma-claude-plugins/blob/main/plugins/enigma-api/skills/enigma-graphql/SKILL.md
+  publisher: Enigma
+  plugin: enigma-api v1.3.0
+  api: https://api.enigma.com/graphql
+  surface: graphql
+  description: >-
+    Search and discover businesses using the Enigma GraphQL API — entity resolution for known names
+    and semantic discovery by industry/type, plus filters, pagination and aggregation.
+  note: >-
+    Verbatim copy of Enigma's own skill. Ships alongside a references/ tree (filter syntax, card
+    transactions, NAICS 2022 mapping, pagination template) and a validate_query.py script that are
+    NOT reproduced here — see the source repo.
+- file: enigma-analytics-enigma-kyb-published.md
+  name: enigma-kyb
+  method: searched
+  source: https://github.com/enigma-io/enigma-claude-plugins/blob/main/plugins/enigma-api/skills/enigma-kyb/SKILL.md
+  publisher: Enigma
+  plugin: enigma-api v1.3.0
+  api: https://api.enigma.com/v2/kyb/
+  surface: rest
+  description: >-
+    Verify businesses using the Enigma KYB API — identity verification, registration status, officer
+    screening and KYB due diligence, with the identify/verify packages and the watchlist,
+    tin_verification and ssn_verification add-on tasks.
+- file: enigma-analytics-enigma-screen-published.md
+  name: enigma-screen
+  method: searched
+  source: https://github.com/enigma-io/enigma-claude-plugins/blob/main/plugins/enigma-api/skills/enigma-screen/SKILL.md
+  publisher: Enigma
+  plugin: enigma-api v1.3.0
+  api: https://api.enigma.com/evaluation/sanctions/screen
+  surface: rest
+  description: >-
+    Screen persons and organizations against sanctions and PEP lists using the Enigma Screen API.
+    Explicitly scoped by Enigma to compliance screening only, not general lookup.
+- file: enigma-analytics-kyb-verification.md
+  name: Verify a business (KYB)
+  method: generated
+  api: mcp/enigma-analytics-mcp.yml
+  surface: mcp
+  operations: [search_business, search_kyb, get_brand_locations, get_brand_legal_entities]
+- file: enigma-analytics-sanctions-screening.md
+  name: Screen and decision a customer
+  method: generated
+  api: mcp/enigma-analytics-mcp.yml
+  surface: mcp
+  operations: [screen_customer, screen_business, screen_entity_search, find_decision, find_decisions, update_decision]
+- file: enigma-analytics-risk-due-diligence.md
+  name: Run risk due diligence on a business
+  method: generated
+  api: mcp/enigma-analytics-mcp.yml
+  surface: mcp
+  operations: [search_business, search_negative_news, search_gov_archive, get_brand_card_analytics]
+distribution:
+  marketplace: https://github.com/enigma-io/enigma-claude-plugins
+  install: /plugin marketplace add https://github.com/enigma-io/enigma-claude-plugins.git
+  plugin_install: /plugin install enigma-api@enigma-plugins
+  prerequisite: 'export ENIGMA_API_KEY=<key from https://console.enigma.com>'

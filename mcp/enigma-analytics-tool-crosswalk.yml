@@ -1,0 +1,173 @@
+generated: '2026-08-14'
+method: derived
+source: mcp/enigma-analytics-mcp.yml
+sources:
+- mcp/enigma-analytics-mcp.yml
+- https://www.enigma.com/llms.txt
+- https://github.com/enigma-io/enigma-claude-plugins
+- https://documentation.enigma.com/guides/ai-mcp/tools
+notes: >-
+  Enigma publishes NO OpenAPI, so this crosswalk cannot bind tools to operationIds. It binds each MCP
+  tool to the developer-facing surface that actually backs it — a GraphQL query shape on
+  https://api.enigma.com/graphql, or one of the two REST endpoints Enigma documents
+  (POST /v2/kyb/ and POST /evaluation/sanctions/screen). Both live schemas are auth-gated
+  (GraphQL introspection 401s, MCP tools/list 401s), so every binding below is by NAME AND SEMANTICS
+  from the provider's own documentation and first-party Agent Skills, and confidence is set
+  accordingly. No binding here is verified against a machine-readable contract.
+surfaces:
+  openapi:
+    present: false
+    note: >-
+      Probed /openapi.json, /openapi.yaml, /swagger.json, /v1/openapi.json, /api-docs, /docs and
+      /redoc on api.enigma.com, documentation.enigma.com, www.enigma.com and console.enigma.com on
+      2026-08-14. api.enigma.com serves a 21,489-byte Docusaurus HTML shell at every path (soft-404);
+      api.enigma.com/v1/openapi.json returns 403 {"message":"Missing Authentication Token"} — the AWS
+      API Gateway default, i.e. no such route. No OpenAPI is published for any of the three REST/GraphQL
+      surfaces.
+  graphql:
+    endpoint: https://api.enigma.com/graphql
+    introspection: gated
+    introspection_status: 401
+    introspection_body: '{"error_message":"Missing or invalid API key","error_code":"UNAUTHORIZED","retryable":false}'
+    docs: https://documentation.enigma.com/reference/graphql_api/
+    note: >-
+      Query root exposes `search(searchInput: SearchInput!)` returning a union of
+      Brand | OperatingLocation | LegalEntity | Person | Address, plus `aggregate` and
+      `backgroundTask`. Full field inventory in data-model/enigma-analytics-data-model.yml.
+  rest:
+  - name: KYB REST API
+    endpoint: POST https://api.enigma.com/v2/kyb/
+    spec: none
+    docs: https://documentation.enigma.com/kyb
+  - name: Screen API
+    endpoint: POST https://api.enigma.com/evaluation/sanctions/screen
+    spec: none
+    docs: https://documentation.enigma.com/guides/ai-mcp/screening-tools
+    note: >-
+      Endpoint recorded from Enigma's own published Agent Skill (enigma-screen SKILL.md in
+      github.com/enigma-io/enigma-claude-plugins); it also requires an `Account-Name` header.
+  mcp:
+    url: https://mcp.enigma.com/mcp
+    tools_list: gated
+    tools_list_status: 401
+    auth: oauth
+crosswalk:
+- tool: search_business
+  category: business-intelligence
+  graphql: 'search(searchInput: {name|website|phoneNumber|address, entityType: BRAND})'
+  binding: graphql
+  confidence: high
+  note: >-
+    Direct analogue of the primary `search` query on entityType BRAND; Enigma's own enigma-graphql
+    skill implements the same lookup.
+- tool: search_person
+  category: business-intelligence
+  graphql: 'search(searchInput: {person: {firstName, lastName, ...}}) / Person union member'
+  binding: graphql
+  confidence: high
+- tool: get_brand_locations
+  category: business-intelligence
+  graphql: 'Brand.operatingLocations -> BrandOperatingLocationConnection (addresses, cardTransactions)'
+  binding: graphql
+  confidence: high
+- tool: get_brand_card_analytics
+  category: business-intelligence
+  graphql: 'Brand.cardTransactions -> BrandCardTransactionConnection (quantityType, period, projectedQuantity)'
+  binding: graphql
+  confidence: high
+- tool: get_brand_legal_entities
+  category: business-intelligence
+  graphql: 'Brand.legalEntities -> BrandLegalEntityConnection (registeredEntities, formationDate)'
+  binding: graphql
+  confidence: high
+- tool: search_kyb
+  category: kyb
+  rest: 'POST /v2/kyb/?package=verify'
+  binding: rest
+  confidence: medium
+  note: >-
+    The KYB REST API performs the same name+address verification the tool describes, but the tool's
+    published output ("matching brands and entities with address and name verification") is closer to
+    package=identify plus a match summary than to the full verify response envelope. Fan-out or
+    server-side composition is likely.
+- tool: screen_customer
+  category: screening
+  rest: 'POST /evaluation/sanctions/screen (searches[].type=ENTITY, entity_description.person_name)'
+  binding: rest
+  confidence: medium
+- tool: screen_business
+  category: screening
+  rest: 'POST /evaluation/sanctions/screen (searches[].type=ENTITY, entity_description.org_name)'
+  binding: rest
+  confidence: medium
+- tool: screen_entity_search
+  category: screening
+  rest: 'Screen API entity profile retrieval by entity ID'
+  binding: rest
+  confidence: low
+  note: The Screen API request shape published in the enigma-screen skill covers search, not the by-ID profile fetch; the exact path is not published.
+- tool: find_decision
+  category: screening-workflow
+  rest: 'Screen API decision retrieval by request ID'
+  binding: rest
+  confidence: low
+- tool: find_decisions
+  category: screening-workflow
+  rest: 'Screen API decision query (date range, status, alert, assignee, tag)'
+  binding: rest
+  confidence: low
+- tool: update_decision
+  category: screening-workflow
+  rest: 'Screen API decision mutation (status, assignee, note)'
+  binding: rest
+  confidence: low
+  note: >-
+    The only WRITE in the entire published tool surface. No idempotency key is documented for it —
+    see conventions/enigma-analytics-conventions.yml.
+- tool: generate_brands_segment
+  category: segmentation
+  graphql: 'search(searchInput: {prompt, output: {filename, format}}) + backgroundTask(id) polling'
+  binding: graphql
+  confidence: medium
+  note: Maps to the documented async segmentation/export pattern; the tool itself has no published schema.
+- tool: generate_locations_segment
+  category: segmentation
+  graphql: 'search(searchInput: {entityType: OPERATING_LOCATION, output: {...}}) + backgroundTask(id) polling'
+  binding: graphql
+  confidence: medium
+mcp_only:
+- tool: search_negative_news
+  reason: >-
+    No GraphQL type or documented REST endpoint corresponds to negative-news screening across legal,
+    financial, labor, management, environmental, customer, product and cybersecurity categories. It
+    appears to be an MCP-exposed capability with no public developer-API equivalent.
+- tool: search_gov_archive
+  reason: >-
+    Government-archive search (permits, licenses, health inspections, court filings, professional
+    licensing) has a docs guide (/guides/gov-archive) but no corresponding GraphQL connection or REST
+    endpoint in the published surface.
+surface_only:
+- surface: graphql
+  capability: aggregate(searchInput) counting brands/operatingLocations/legalEntities
+  reason: No MCP tool exposes the aggregate query.
+- surface: graphql
+  capability: 'math functions — count/sum/min/max/avg/collect/minDateTime/maxDateTime on any entity'
+  reason: No MCP tool exposes ad-hoc aggregation over arbitrary field paths.
+- surface: graphql
+  capability: 'FilterExpression operators — EQ/NE/GT/GTE/LT/LTE/IN/NOT_IN/LIKE/ILIKE/AND/OR/NOT/HAS/ADD/SUB/MUL/DIV'
+  reason: MCP tools take flat named parameters; the filter algebra is GraphQL-only.
+- surface: graphql
+  capability: 'entity connections not surfaced as tools — reviewSummaries, technologiesUseds, ranks, isMarketables, bankruptcies, tins, roles, activities'
+  reason: Reachable only by composing a GraphQL query.
+- surface: rest
+  capability: 'KYB add-on tasks — TIN (EIN) verification, SSN verification, watchlist screening via ?attrs='
+  reason: No MCP tool exposes TIN or SSN verification.
+coverage:
+  tools_published: 16
+  tools_bound: 14
+  mcp_only: 2
+  rest_or_graphql_operations_total: null
+  note: >-
+    A total operation count cannot be given because no OpenAPI or SDL is published and both live
+    schemas are gated. `surface_only[]` records the capability classes the developer surfaces expose
+    that no tool does, which is the honest form of rest_only[] absent an operation inventory.

@@ -1,32 +1,100 @@
-generated: '2026-07-19'
+generated: '2026-08-14'
 method: searched
 source: https://www.enigma.com/legal/security
+sources:
+- https://www.enigma.com/legal/security
+- https://mcp.enigma.com/.well-known/oauth-authorization-server
+- https://mcp.enigma.com/.well-known/oauth-protected-resource
+- https://www.enigma.com/.well-known/mcp/server-card.json
+- https://www.enigma.com/robots.txt
+- https://documentation.enigma.com/guides/graphql/response-status-codes
 standards:
-  - id: soc2-type2
-    conforms: true
-    evidence: >-
-      "SOC 2 (Type 2) compliant" — Security, availability, and confidentiality trust services
-      criteria, per https://www.enigma.com/legal/security
-  - id: graphql
-    conforms: true
-    evidence: Primary API is GraphQL served at https://api.enigma.com/graphql
-  - id: relay-cursor-connections
-    conforms: true
-    evidence: >-
-      Relay-style connection pagination (edges/node/cursor/pageInfo; first/last/after/before args)
-      per the GraphQL schema
-  - id: oauth2-bearer
-    conforms: true
-    evidence: MCP server authenticates with an Authorization bearer token (invalid_token on missing header)
-  - id: rfc9116-security-txt
-    conforms: true
-    evidence: Valid /.well-known/security.txt published at www.enigma.com
-  - id: rfc9457-problem-details
-    conforms: false
-    evidence: GraphQL surface uses the standard top-level errors[] envelope, not application/problem+json
-  - id: iso-27001
-    conforms: false
-  - id: pci-dss
-    conforms: false
-  - id: hipaa
-    conforms: false
+- id: soc2-type2
+  conforms: true
+  evidence: >-
+    "SOC 2 (Type 2) compliant" — security, availability and confidentiality trust services criteria,
+    per https://www.enigma.com/legal/security
+- id: graphql
+  conforms: true
+  evidence: Primary API is GraphQL served at https://api.enigma.com/graphql
+- id: relay-cursor-connections
+  conforms: true
+  evidence: >-
+    Relay-style connection pagination (edges/node/cursor/pageInfo; first/last/after/before) documented
+    in llms.txt and the GraphQL reference; forward and backward paging cannot be mixed.
+- id: mcp
+  conforms: true
+  evidence: >-
+    Remote MCP server at https://mcp.enigma.com/mcp, streamable-http transport, declared in a server
+    card at https://www.enigma.com/.well-known/mcp/server-card.json against the MCP
+    2025-10-17 server schema.
+- id: mcp-authorization
+  conforms: true
+  evidence: >-
+    Implements the MCP OAuth 2.1 authorization profile; service_documentation in the AS metadata
+    points at https://modelcontextprotocol.io/authorization.
+- id: oauth2.1
+  conforms: true
+  evidence: >-
+    authorization_code + refresh_token grants, code_challenge_methods_supported ["S256"] (PKCE
+    mandatory), no implicit/password grants advertised.
+- id: rfc8414-oauth-authorization-server-metadata
+  conforms: true
+  evidence: 200 application/json at https://mcp.enigma.com/.well-known/oauth-authorization-server and https://oauth.enigma.com/.well-known/oauth-authorization-server
+- id: rfc9728-oauth-protected-resource-metadata
+  conforms: true
+  evidence: 200 application/json at https://mcp.enigma.com/.well-known/oauth-protected-resource
+- id: rfc7591-dynamic-client-registration
+  conforms: true
+  evidence: registration_endpoint https://oauth.enigma.com/register advertised in AS metadata
+- id: rfc9116-security-txt
+  conforms: true
+  evidence: Valid /.well-known/security.txt published at www.enigma.com (Contact + Expires)
+- id: llmstxt
+  conforms: true
+  evidence: >-
+    19,025-byte text/plain /llms.txt published at https://www.enigma.com/llms.txt, with a "For Agents"
+    section, the full entity model, both API surfaces and worked GraphQL examples.
+- id: content-signals
+  conforms: true
+  evidence: 'https://www.enigma.com/robots.txt carries `Content-Signal: ai-train=yes, search=yes, ai-input=yes`'
+- id: oidc
+  conforms: false
+  evidence: >-
+    `openid` is the only advertised scope, but no /.well-known/openid-configuration is served on any
+    host (404 on www, oauth and mcp; soft-404 on the docs and console SPAs).
+- id: openapi
+  conforms: false
+  evidence: >-
+    No OpenAPI or Swagger document is published for the GraphQL, KYB or Screen surfaces; every
+    standard discovery path was probed on 2026-08-14 and missed.
+- id: asyncapi
+  conforms: false
+  evidence: No event, streaming or webhook surface is published; async work is background-task polling over GraphQL.
+- id: a2a
+  conforms: false
+  evidence: >-
+    No agent card at /.well-known/agent-card.json or /.well-known/agent.json on www, api, mcp, oauth,
+    documentation or console (404s and SPA soft-404s only).
+- id: rfc9457-problem-details
+  conforms: false
+  evidence: Errors use a vendor envelope ({error_message, error_code, retryable}) and the GraphQL errors[] array, not application/problem+json
+- id: rfc8594-sunset-header
+  conforms: false
+  evidence: No deprecation policy or Sunset/Deprecation header support is published
+- id: rfc9331-ratelimit-headers
+  conforms: false
+  evidence: 429 responses carry Retry-After only; no RateLimit-* or X-RateLimit-* headers are documented
+- id: iso-27001
+  conforms: false
+- id: pci-dss
+  conforms: false
+- id: hipaa
+  conforms: false
+- id: fedramp
+  conforms: false
+regulatory_context:
+  note: >-
+    Enigma sells into KYB/AML workflows for banks, fintechs and payments platforms, so its customers
+    operate under BSA/AML, OFAC sanctions and FinCEN CDD obligations. Enigma is a data provider to
+    those programmes, not a regulated entity itself; it publishes SOC 2 Type 2 and nothing further.

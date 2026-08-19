@@ -1,0 +1,104 @@
+generated: '2026-08-14'
+method: searched
+source: https://documentation.enigma.com/guides/graphql/response-status-codes
+docs: https://documentation.enigma.com/guides/graphql/response-status-codes
+format: vendor-json
+rfc9457: false
+notes: >-
+  Enigma publishes a response status-code reference for the GraphQL API. It does NOT use RFC 9457
+  application/problem+json. Two distinct envelopes are in play and callers must handle both:
+  (1) the GATEWAY envelope, observed on an unauthenticated probe of https://api.enigma.com/graphql —
+  a flat JSON object {error_message, error_code, retryable} with a machine-readable boolean retry
+  hint; and (2) the GRAPHQL envelope for request-level problems — the standard top-level `errors`
+  array alongside `data`. The `retryable` boolean in the gateway envelope is the useful agent signal
+  and is not mentioned in the docs; it was observed live.
+envelopes:
+- name: gateway
+  shape: '{ "error_message": string, "error_code": string, "retryable": boolean }'
+  observed: true
+  evidence:
+    url: https://api.enigma.com/graphql
+    method: POST
+    http_status: 401
+    body: '{"error_message":"Missing or invalid API key","error_code":"UNAUTHORIZED","retryable":false}'
+    fetched: '2026-08-14'
+- name: graphql
+  shape: '{ "data": ..., "errors": [ { "message": ..., "path": ..., "extensions": ... } ] }'
+  observed: false
+  note: documented for 400 Bad Request — "Additional error message may be present in the body under `errors`"
+- name: mcp
+  shape: '{ "error": string, "error_description": string, "request_id": string }'
+  observed: true
+  evidence:
+    url: https://mcp.enigma.com/mcp
+    method: POST
+    http_status: 401
+    body: '{"error":"invalid_token","error_description":"Missing or invalid authorization header","request_id":"<uuid>"}'
+    fetched: '2026-08-14'
+    note: OAuth 2.0 bearer-token error shape; carries a request_id for support correlation
+problems:
+- status: 200
+  title: OK
+  detail: A successful request.
+  api: Enigma GraphQL API
+- status: 202
+  title: Accepted
+  detail: >-
+    Returned for asynchronous requests. Segmentation/export queries return a background task to poll
+    via `backgroundTask(id) { status, result }`; status values are PROCESSING, SUCCESS, FAILED,
+    CANCELLED.
+  api: Enigma GraphQL API
+- status: 302
+  title: Found
+  detail: >-
+    Responses exceeding 6 MB are redirected to a pre-signed AWS S3 URL via the Location header. A
+    client that does not follow redirects will silently lose large result sets.
+  api: Enigma GraphQL API
+- status: 400
+  title: Bad Request
+  detail: >-
+    Request has invalid and/or unsupported input. An additional error message may be present in the
+    body under `errors`.
+  api: Enigma GraphQL API
+  retryable: false
+- status: 401
+  title: Unauthorized
+  detail: >-
+    Request is missing the x-api-key request header, or the API key is invalid or disabled.
+  api: Enigma GraphQL API
+  error_code: UNAUTHORIZED
+  retryable: false
+- status: 402
+  title: Payment Required
+  detail: >-
+    Request encountered billing errors, such as insufficient credits. This is a commercial failure,
+    not a technical one — retrying without topping up the credit balance will fail identically.
+  api: Enigma GraphQL API
+  retryable: false
+  remediation: Top up credits or raise the plan allowance; see plans/enigma-analytics-plans-pricing.yml
+- status: 429
+  title: Slow Down
+  detail: >-
+    Rate limit exceeded (per-second, burst, or daily on GraphQL; per-tool daily/monthly on MCP).
+    Includes a Retry-After header giving seconds to wait.
+  api: Enigma GraphQL API, Enigma MCP server
+  retryable: true
+  remediation: >-
+    Honour Retry-After as a minimum; exponential backoff from 1s, doubling, capped at 60s.
+  source: https://documentation.enigma.com/resources/rate-limits
+- status: 429
+  title: Too Many Requests
+  detail: Rate limit exceeded on the KYB REST API; limits vary by plan and contract.
+  api: Enigma KYB REST API
+  retryable: true
+  source: https://documentation.enigma.com/resources/rate-limits
+- status: 401
+  title: invalid_token
+  detail: Missing or invalid Authorization bearer header on the MCP server.
+  api: Enigma MCP server
+  error_code: invalid_token
+  retryable: false
+gaps:
+- No 403, 404, 500 or 503 semantics are published for any surface.
+- No RFC 9457 problem+json, no error `type` URIs, and no stable error-code registry beyond the codes above.
+- The `retryable` boolean exists on the wire but is not documented, so a client cannot rely on it contractually.

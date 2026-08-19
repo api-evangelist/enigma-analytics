@@ -1,0 +1,56 @@
+generated: '2026-08-14'
+method: probed
+source: https://mcp.enigma.com/.well-known/oauth-authorization-server
+docs: https://documentation.enigma.com/guides/ai-mcp
+notes: >-
+  Enigma's OAuth surface exists for ONE purpose: authorizing MCP clients against
+  https://mcp.enigma.com/mcp. The GraphQL API, the KYB REST API and the Screen API are all API-key
+  (x-api-key) authenticated and have no OAuth or scope surface at all — do not read this file as a
+  scope model for them. The authorization-server metadata was fetched anonymously (RFC 8414) and is
+  saved verbatim at well-known/enigma-analytics-oauth-authorization-server.json; the protected
+  resource metadata (RFC 9728) is at well-known/enigma-analytics-oauth-protected-resource.json.
+schemes:
+- name: EnigmaMCPOAuth
+  type: oauth2
+  version: OAuth 2.1 (MCP authorization profile)
+  issuer: https://oauth.enigma.com
+  protected_resource: https://mcp.enigma.com/http
+  service_documentation: https://modelcontextprotocol.io/authorization
+  flows:
+  - flow: authorizationCode
+    authorizationUrl: https://oauth.enigma.com/authorize
+    tokenUrl: https://oauth.enigma.com/token
+    pkce_required_methods: [S256]
+    response_types: [code]
+    response_modes: [query, fragment]
+    grant_types: [authorization_code, refresh_token]
+    token_endpoint_auth_methods: [client_secret_basic]
+  dynamic_client_registration:
+    supported: true
+    registration_endpoint: https://oauth.enigma.com/register
+    note: >-
+      RFC 7591 dynamic client registration is open, which is what lets an arbitrary MCP client
+      onboard without a pre-provisioned client_id — the mechanism the MCP authorization spec relies on.
+  revocation_endpoint: https://oauth.enigma.com/revoke
+  introspection_endpoint: https://oauth.enigma.com/introspect
+  jwks_uri: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_00OC0VOa2/.well-known/jwks.json
+  identity_provider: Amazon Cognito (us-east-1)
+scopes:
+- name: openid
+  description: >-
+    The only scope advertised in `scopes_supported`. There is no per-tool, per-dataset or
+    read/write scope decomposition — an authorized MCP client receives the whole tool surface, and
+    access is bounded by plan and by the per-tool rate limits rather than by scope.
+  source: https://mcp.enigma.com/.well-known/oauth-authorization-server
+scope_count: 1
+gaps:
+- >-
+    No granular scopes. A KYB/sanctions dataset is exactly the surface where an agent operator would
+    want to grant `screening:read` without `card-analytics:read`; today that separation does not
+    exist at the token layer.
+- No OpenID Connect discovery document (/.well-known/openid-configuration 404s on every host) despite `openid` being the advertised scope.
+x-evidence:
+  fetched: '2026-08-14'
+  url: https://mcp.enigma.com/.well-known/oauth-authorization-server
+  http_status: 200
+  content_type: application/json

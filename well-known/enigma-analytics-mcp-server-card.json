@@ -1,0 +1,14 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "com.enigma/enigma-mcp",
+  "version": "1.0.0",
+  "title": "Enigma MCP",
+  "description": "Remote MCP server for U.S. business intelligence: entity resolution, KYB verification, sanctions and negative-news screening, card-transaction analytics, and public-records search.",
+  "websiteUrl": "https://documentation.enigma.com/guides/ai-mcp",
+  "remotes": [
+    {
+      "transport": "streamable-http",
+      "url": "https://mcp.enigma.com/mcp"
+    }
+  ]
+}

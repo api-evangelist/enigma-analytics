@@ -1,0 +1,127 @@
+generated: '2026-08-14'
+method: searched
+source: https://documentation.enigma.com/resources/rate-limits
+docs: https://documentation.enigma.com/resources/rate-limits
+limit_count: 11
+notes: >-
+  Enigma publishes a dedicated rate-limits reference covering all three surfaces separately — the
+  GraphQL API by plan, the KYB REST API by contract, and the MCP server PER TOOL. The per-tool MCP
+  limits are the notable part: an agent's budget is scoped to the individual tool, on rolling 24-hour
+  and 30-day windows, so exhausting `search_kyb` does not exhaust `search_business`.
+response_signaling:
+  status_on_exhaustion: 429
+  status_text: Slow Down (GraphQL and MCP) / Too Many Requests (KYB)
+  headers:
+  - name: Retry-After
+    units: seconds
+    note: >-
+      Documented as returned on 429. Enigma's own guidance: "Respect Retry-After: treat it as the
+      minimum wait, not a suggestion."
+  ratelimit_headers_published: false
+  ratelimit_headers_note: >-
+    No X-RateLimit-* or RFC 9331 RateLimit-* headers are documented, so a client cannot read its
+    remaining budget before it is exhausted — only Retry-After after the fact. The docs tell callers
+    to determine which limit fired (per-second, burst or daily) from their own accounting.
+  retry_guidance: >-
+    Exponential backoff starting at 1 second, doubling per retry, capped at 60 seconds; cap total
+    retries per request; queue client-side or token-bucket below the plan RPS.
+limits:
+- api: Enigma GraphQL API
+  endpoint: https://api.enigma.com/graphql
+  scope: per-api-key
+  plan: Trial
+  window: 1s
+  limit: 10
+  burst: 20
+- api: Enigma GraphQL API
+  endpoint: https://api.enigma.com/graphql
+  scope: per-api-key
+  plan: Trial
+  window: 1d
+  limit: 100000
+- api: Enigma GraphQL API
+  endpoint: https://api.enigma.com/graphql
+  scope: per-api-key
+  plan: Pro
+  window: 1s
+  limit: 50
+  burst: 100
+- api: Enigma GraphQL API
+  endpoint: https://api.enigma.com/graphql
+  scope: per-api-key
+  plan: Pro
+  window: 1d
+  limit: 500000
+- api: Enigma GraphQL API
+  endpoint: https://api.enigma.com/graphql
+  scope: per-api-key
+  plan: Max
+  window: 1s
+  limit: 50
+  burst: 100
+- api: Enigma GraphQL API
+  endpoint: https://api.enigma.com/graphql
+  scope: per-api-key
+  plan: Max
+  window: 1d
+  limit: 500000
+- api: Enigma GraphQL API
+  endpoint: https://api.enigma.com/graphql
+  scope: per-api-key
+  plan: Enterprise
+  window: 1s
+  limit: 100
+  burst: 200
+- api: Enigma GraphQL API
+  endpoint: https://api.enigma.com/graphql
+  scope: per-api-key
+  plan: Enterprise
+  window: 1d
+  limit: null
+  note: unlimited daily requests on Enterprise
+- api: Enigma KYB REST API
+  endpoint: https://api.enigma.com/v2/kyb/
+  scope: per-account
+  plan: all
+  window: null
+  limit: null
+  note: >-
+    "Vary by plan and contract" — no numeric limit is published; Enigma directs callers to support
+    for their specifics. 429 Too Many Requests on exhaustion, exponential backoff 1s doubling to a
+    60s cap.
+- api: Enigma MCP server
+  endpoint: https://mcp.enigma.com/mcp
+  scope: per-tool
+  plan: Pro, Max
+  window: rolling-24h
+  limit: 500
+  applies_to: most tools
+  exceptions:
+  - tools: [generate_brands_segment, generate_locations_segment]
+    limit: 100
+  - tools: [search_kyb, search_negative_news]
+    limit: 100
+- api: Enigma MCP server
+  endpoint: https://mcp.enigma.com/mcp
+  scope: per-tool
+  plan: Pro, Max
+  window: rolling-30d
+  limit: 8000
+  applies_to: most tools
+  exceptions:
+  - tools: [generate_brands_segment, generate_locations_segment]
+    limit: 1000
+  - tools: [search_kyb, search_negative_news]
+    limit: 2000
+- api: Enigma MCP server
+  endpoint: https://mcp.enigma.com/mcp
+  scope: per-tool
+  plan: Enterprise
+  window: null
+  limit: null
+  note: configurable; contact Enigma support
+quota_interaction:
+  note: >-
+    Rate limits are separate from credit consumption. A request inside the rate limit can still fail
+    on billing — the GraphQL API returns 402 Payment Required for insufficient credits. See
+    plans/enigma-analytics-plans-pricing.yml and errors/enigma-analytics-problem-types.yml.
