@@ -244,3 +244,5 @@ x-enrichment:
   status: enriched
   artifacts_added: 14
   pass: local-v1
+x-parent: enigma
+x-relationship: product
