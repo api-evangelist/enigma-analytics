@@ -1,0 +1,136 @@
+generated: '2026-08-14'
+method: derived
+source: https://documentation.enigma.com/sitemap.xml
+docs: https://documentation.enigma.com/reference/graphql_api
+endpoint: https://api.enigma.com/graphql
+model: graph-model-1
+what_this_is: >-
+  A catalog of the Enigma GraphQL schema surface, derived from Enigma's own generated
+  GraphQL reference (324 published reference pages, one per schema member, enumerated
+  from the documentation sitemap). This is NOT an SDL document and must not be read as
+  one — it records WHICH members exist and where each is documented. The SDL itself
+  could not be captured because introspection is authenticated.
+introspection:
+  status: gated
+  probe:
+    url: https://api.enigma.com/graphql
+    method: 'POST {"query":"{__schema{queryType{name}}}"}'
+    http_status: 401
+    body: '{"error_message":"Missing or invalid API key","error_code":"UNAUTHORIZED","retryable":false}'
+    checked: '2026-08-14'
+  note: >-
+    Introspection requires the x-api-key header. An authenticated pass could capture the
+    real SDL to graphql/enigma.graphql; until then this catalog is the honest ceiling.
+playground: https://console.enigma.com/explore/graphql
+counts:
+  queries: 9
+  mutations: 7
+  deprecated_queries: 2
+  directives: 12
+  enums: 6
+  inputs: 23
+  interfaces: 2
+  objects: 251
+  scalars: 10
+  unions: 1
+  total_reference_pages: 324
+queries:
+- account
+- aggregate
+- attributeGroups
+- backgroundTask
+- enrich
+- listMaterialization
+- lists
+- schemaExtended
+- search
+mutations:
+- cancelListMaterialization
+- createList
+- createListMaterialization
+- createSuggestion
+- deleteList
+- updateList
+- updateListMaterialization
+deprecated:
+- kind: query
+  name: getListMaterialization
+  docs: https://documentation.enigma.com/reference/graphql_api/deprecated/queries/get-list-materialization
+- kind: query
+  name: searchLists
+  docs: https://documentation.enigma.com/reference/graphql_api/deprecated/queries/search-lists
+directives:
+- coalesce
+- compact
+- dadjoke
+- dateAccessible
+- include
+- join
+- lower
+- map
+- skip
+- slice
+- trim
+- upper
+enums:
+- enrichmentProvider
+- entityType
+- listSearchField
+- listType
+- outputFormat
+- tinType
+interfaces:
+- Entity
+- NodeFunctions
+unions:
+- SearchUnion
+scalars:
+- Boolean
+- Date
+- DateTime
+- Float
+- ID
+- Int
+- JSON
+- JSONString
+- String
+- UUID
+inputs:
+- AddressInput
+- CancelListMaterializationInput
+- ColumnMappingInput
+- Conditions
+- ConnectionConditions
+- CreateListInput
+- CreateListMaterializationInput
+- DeleteListInput
+- EnrichmentInput
+- EntityIdentifier
+- FieldAliasInput
+- GetListMaterializationInput
+- ListConditionsInput
+- ListSearchInputInput
+- OutputSpec
+- PersonInput
+- SearchFieldGroupInput
+- SearchInput
+- SearchListsInput
+- SuggestionInput
+- TinInput
+- UpdateListInput
+- UpdateListMaterializationInput
+shape_notes:
+- >-
+  Query.search returns the SearchUnion ([Brand, OperatingLocation, LegalEntity, Person,
+  Address]) — a plain list of nodes, NOT a Relay connection. It takes no first/after.
+- >-
+  Every nested field (names, websites, addresses, operatingLocations, legalEntities,
+  cardTransactions, industries, roles, tins, registeredEntities, persons, …) is a
+  *Connection type traversed as (first: N) { edges { node { … } } }; max page size 100.
+- >-
+  Two distinct `conditions` types: `Conditions` on searchInput (filter, orderBy, limit,
+  pageToken) and `ConnectionConditions` on nested connections.
+source_of_shape_notes: skills/enigma-graphql.md (Enigma's own published Agent Skill)
+see_also:
+- data-model/enigma-data-model.yml
+- mcp/enigma-tool-crosswalk.yml

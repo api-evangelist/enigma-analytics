@@ -167,6 +167,8 @@ apis:
   - type: RateLimits
     url: rate-limits/enigma-analytics-rate-limits.yml
 common:
+- type: GraphQL
+  url: graphql/enigma-analytics-graphql-surface.yml
 - type: Website
   url: https://www.enigma.com
 - type: DeveloperPortal
@@ -244,5 +246,3 @@ x-enrichment:
   status: enriched
   artifacts_added: 14
   pass: local-v1
-x-parent: enigma
-x-relationship: product
