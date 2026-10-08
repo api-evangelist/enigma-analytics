@@ -101,3 +101,40 @@ notes: >-
   Enigma is unusual for a KYB/business-data provider in publishing real self-serve list prices rather
   than a contact-sales wall: Free, $20/mo Pro and $200/mo Max are all buyable without a sales
   conversation, with Enterprise as the negotiated tier. MCP access is gated to Pro and above.
+x-canonical:
+  generated: '2026-10-08'
+  vocabulary: all/0-working/economics/plans-canonical.yml
+  models:
+  - free
+  - hybrid
+  - metered
+  units: []
+  plans:
+  - name: Free
+    access: other
+    model: free
+    model_how: derived
+    units: []
+    periods:
+    - month
+  - name: Pro
+    access: other
+    model: hybrid
+    model_how: derived
+    units: []
+    periods:
+    - month
+  - name: Max
+    access: other
+    model: hybrid
+    model_how: derived
+    units: []
+    periods:
+    - month
+  - name: Enterprise
+    access: other
+    model: metered
+    model_how: derived
+    units: []
+    periods:
+    - month
