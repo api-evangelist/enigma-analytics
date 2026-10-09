@@ -197,3 +197,14 @@ live_introspection:
   note: tools/list requires an OAuth token, so the real per-tool inputSchema could not be captured. The
     tool list above is the provider's own published documentation; `inputs` are the parameter names Enigma
     names in prose, NOT a JSON Schema. Authenticated introspection is required to record the true schemas.
+rfc9728:
+  endpoint: https://mcp.enigma.com/mcp
+  metadata_url: https://mcp.enigma.com/.well-known/oauth-protected-resource
+  discovered_via: WWW-Authenticate resource_metadata on an anonymous POST initialize
+  fetched: '2026-09-25'
+  http_status: 200
+  content_type: application/json
+  document:
+    resource: https://mcp.enigma.com/http
+    authorization_servers:
+    - https://oauth.enigma.com
