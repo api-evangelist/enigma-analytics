@@ -64,6 +64,128 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Enigma Analytics is a company surfaced as a portfolio company of general-catalyst and added to the API Evangelist network as a stub for enrichment. This profile is a lead awaiting the enrichment pipeline.
+Enigma Analytics (Enigma Technologies) operates a knowledge graph of every U.S. business — 100M+ business registrations and 2B+ relationships spanning brands, legal entities, operating locations, addresses, and the people behind them, enriched with 750M+ anonymized cards and 30B+ annual card transactions. Enigma exposes this business identity infrastructure through three developer surfaces — a Relay-style GraphQL API, a KYB REST API, and a sanctions Screen API — plus a hosted Console and an OAuth 2.1 remote MCP server, powering Know Your Business (KYB) onboarding, sanctions and watchlist screening, negative-news and government-archive checks, TIN and SSN verification, card-transaction analytics, and payment underwriting and go-to-market signals for banks, fintechs, and payments platforms. Pricing is published and self-serve, metered in credits at one cent each.
 
-Backed by: general-catalyst
+**Areas:** Company · Business Data · KYB · Identity Verification · Compliance · Sanctions Screening · GraphQL · Fintech · Data Enrichment · MCP · Agent Skills · Payments Risk
+
+## Enigma Analytics on APIs.io
+
+Everything profiled for Enigma Analytics is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/enigma-analytics/](https://apis.io/providers/enigma-analytics/)** — or go straight to one of the APIs or properties below.
+
+### APIs (4)
+
+- [Enigma GraphQL API](https://apis.io/apis/enigma-analytics/enigma-graphql-api/) — Enigma's primary programmatic surface: a Relay-style GraphQL API over the business knowledge graph. Query Brand, LegalEntity, OperatingLocation, Address,…
+- [Enigma KYB REST API](https://apis.io/apis/enigma-analytics/enigma-kyb-rest-api/) — REST endpoint for Know Your Business verification. POST a business name, address, website, TIN and/or person and receive identity matching and compliance…
+- [Enigma Screen API](https://apis.io/apis/enigma-analytics/enigma-screen-api/) — REST endpoint for screening persons and organizations against sanctions, PEP and watchlist databases. Accepts a batch of ENTITY searches carrying…
+- [Enigma MCP Server](https://apis.io/apis/enigma-analytics/enigma-mcp-server/) — Remote Model Context Protocol server for U.S. business intelligence — entity resolution, KYB verification, sanctions and negative-news screening,…
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [Enigma MCP](https://apis.io/servers/enigma-analytics/com-enigma-enigma-mcp/)
+
+#### Security (4)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Enigma Analytics Authentication](https://apis.io/security/enigma-analytics/enigma-analytics-authentication/)
+- [Enigma Analytics Domain Security](https://apis.io/security/enigma-analytics/enigma-analytics-domain-security/)
+- [Enigma Analytics Trust Center](https://apis.io/security/enigma-analytics/enigma-analytics-trust-center/)
+- [Enigma Analytics Vulnerability Disclosure](https://apis.io/security/enigma-analytics/enigma-analytics-vulnerability-disclosure/)
+
+#### OAuth scopes (1)
+
+The permissions the API asks for.
+
+- [Enigma Analytics Scopes](https://apis.io/scopes/enigma-analytics/enigma-analytics-scopes/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Enigma Analytics Plans Pricing](https://apis.io/plans/enigma-analytics/enigma-analytics-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Enigma Analytics Rate Limits](https://apis.io/rate-limits/enigma-analytics/enigma-analytics-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://www.enigma.com)
+- [Documentation](https://documentation.enigma.com/)
+- [Getting started](https://documentation.enigma.com/getting_started/enigma_data)
+- [API reference](https://documentation.enigma.com/reference/graphql_api/)
+- [Pricing](https://www.enigma.com/pricing)
+- [Sign up](https://console.enigma.com)
+- [Support](https://www.enigma.com/contact-us)
+- [Blog](https://www.enigma.com/resources/blog)
+- [Security](https://www.enigma.com/legal/security)
+- [Compliance](https://www.enigma.com/legal/security)
+- [Terms of service](https://www.enigma.com/legal/terms-of-service)
+- [Privacy policy](https://www.enigma.com/legal/privacy-policy)
+- [GitHub](https://github.com/enigma-io)
+- [Status](https://status.enigma.com/)
+
+## API Evangelist rating
+
+**Kin Score 51.9** — developing · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 80.0 |
+| Contract quality | 0.0 |
+| Contract governance | 18.2 |
+| Operational transparency | 60.5 |
+| Developer ergonomics | 54.8 |
+| Access clarity | 92.1 |
+
+**Agent readiness 36.3** — agent-ready
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | — |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | verified |
+| Auth Clarity | served (partial credit) |
+| Idempotency | — |
+| Error Semantics | documented (partial credit) |
+| OpenAPI Examples | — |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | — |
+| Agent Skills | yes |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | served (partial credit) |
+| Protected Resource Metadata | verified |
+| Dynamic Client Registration | yes |
+| Agentic Commerce | — |
+| Pagination Ratio | na |
+| Operation Distinctiveness | na |
+
+**Regulatory alignment 45.1** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/enigma-analytics/](https://apis.io/providers/enigma-analytics/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for Enigma Analytics: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/enigma-analytics/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
